@@ -11,7 +11,7 @@
 
 Manual for the Client/Server messaging library (CSlib) :c,h2
 
-6 Mar 2018 version
+8 Aug 2018 version
 
 The Client/Server messaging library (CSlib) provides a simple
 mechanism for coupling two independent codes together by enabling them
