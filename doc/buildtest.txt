@@ -1,0 +1,59 @@
+"CSlib documentation"_Manual.html
+
+Build the test apps :h3
+
+This is done from the test dir after building the CSlib, as explained
+in "this section"_#buildlib.
+
+As explained in "this section"_testapps.html, the test dir contains
+pairs of client/server programs which use the CSlib (CSlib test apps),
+as well of pairs of simple client/server apps which call the ZMQ and
+MPI libraries directly.
+
+There is a single Makefile for building all of them.  Type "make" to
+see this list.
+
+make all           build all the CSlib and simple apps
+make serial        build the CSlib serial apps, except fortran
+make parallel      build the CSlib parallel apps, except fortran
+make f90           build the CSlib fortran apps, serial & parallel
+make simple        build the simple apps
+make pair          build a single pair of c/s apps (list below) :pre
+
+single pairs of test apps:
+  C++: serial_c++, parallel_c++
+  C:   serial_c, parallel_c
+  F90: serial_f90, parallel_f90
+single pairs of simple apps:
+  simple_zmq, simple_mpi_one, simple_mpi_two :pre
+
+Try the "make all" build first.  If you have MPI on your system and
+the requisite compilers, everything should just build.  If not, you
+can use the other targets to avoid building certain executables.  Or
+you can type commands like this if you only want to build specific
+pairs of client/server apps.
+
+make serial_c++
+make parallel_c
+make simple_mpi_one :pre
+
+When builds are successful, you should have pairs of client and server
+executable files with the corresponding names in the test dir.
+
+IMPORTANT NOTE: To build the serial CSlib apps, you must link against
+the serial shared CSlib library.  To build the parallel CSlib apps,
+you must link against the parallel shared CSlib library.  As explained
+in "this section"_#buildlib, you can build both these versions of the
+CSlib by simply typing "make" in the src dir.
+
+IMPORTANT NOTE: If you only built static versions of the CSlib, and
+you built the CSlib with ZMQ support, you will need to include the ZMQ
+library in the link lines in this Makefile (or a similar Makefile you
+use to build your own apps).
+
+The Makefile assumes that standard compilers and MPI wrappers are in
+your path.  If that is not the case or you wish to use different
+compilers or flags, you can create/edit a new Makefile,
+e.g. Makefile.mine, and invoke it as follows:
+
+make -f Makefile.mine target ... :pre

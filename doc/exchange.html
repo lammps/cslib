@@ -1,0 +1,1100 @@
+<HTML>
+<P><A HREF = "Manual.html">CSlib documentation</A>
+</P>
+<H3>Exchange messages 
+</H3>
+<P>Sending a message occurs in two stages.  An initial call to send()
+sets a message ID and field count.  A field is zero or more datums of
+the same data type (int, double, etc).  Then pack() methods are
+called, once for each field.  The message is not sent to the other
+application until the last field has been packed.
+</P>
+<P>Receiving a message also occurs in two stages.  An initial call to
+recv() returns a message ID, field count, and info about each of the
+fields (id, data type, length) in the message.  A field is zero or
+more datums of the same datat type (int, double, etc).  Then unpack()
+methods are called, typically once for each field.  Fields can be
+unpacked in any order, or not at all.
+</P>
+<P>These are code examples for the various CSlib methods used to exchange
+messages.  Code for the sending app and receiving app are shown
+together:
+</P>
+<UL><LI><A HREF = "#sendreceive">Send and recv methods</A>
+<LI><A HREF = "#packone">Pack and unpack a single value</A>
+<LI><A HREF = "#packstring">Pack and unpack a string</A>
+<LI><A HREF = "#packdata">Pack and unpack multiple datums</A>
+<LI><A HREF = "#packparallel">Pack and unpack multiple datums in parallel</A>
+<LI><A HREF = "#packmulti">Pack and unpack of multidimensional arrays</A> 
+</UL>
+<P>Additional details on the methods:
+</P>
+<UL><LI><A HREF = "#memory">Who owns the data memory</A>
+<LI><A HREF = "#persistence">Persistence of data</A>
+<LI><A HREF = "#matching">No matching requirement for pack and unpack methods</A>
+<LI><A HREF = "#sync">Synchronizing methods</A>
+<LI><A HREF = "#organize">How pack_parallel() and unpack_parallel() organize their data</A>
+<LI><A HREF = "#vecarray">Referencing a vector containing array data</A>
+<LI><A HREF = "#distribute">Data distributions for pack_parallel() and unpack_parallel()</A> 
+</UL>
+<HR>
+
+<HR>
+
+<H4><A NAME = "sendreceive"></A>Send and recv methods 
+</H4>
+<P><B>API:</B>
+</P>
+<PRE>void send(int msgID, int nfield);
+int recv(int &nfield, int *&fieldID, int *&fieldtype, int *&fieldlen); 
+</PRE>
+<P><B>C++ sending app:</B>
+</P>
+<PRE>int msgID = 1;
+int nfield = 10;
+cs->send(msgID,nfield);    // cs = object created by CSlib() 
+</PRE>
+<P><B>C++ receiving app:</B>
+</P>
+<PRE>int nfield;
+int *fieldID,*fieldtype,*fieldlen;
+int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen); 
+</PRE>
+<P><B>C sending app:</B>
+</P>
+<PRE>void *cs;        // ptr returned by cslib_open()
+int msgID = 1;
+int nfield = 10;
+cslib_send(cs,msgID,nfield); 
+</PRE>
+<P><B>C receiving app:</B>
+</P>
+<PRE>void *cs;
+int nfield;
+int *fieldID,*fieldtype,*fieldlen;
+int msgID = cslib_recv(cs,&nfield,&fieldID,&fieldtype,&fieldlen); 
+</PRE>
+<P><B>Fortran sending app:</B>
+</P>
+<PRE>type(c_ptr) :: cs      ! ptr returned by cslib_open()
+integer :: msgID = 1
+integer :: nfield = 10
+call cslib_send(cs,msgID,nfield) 
+</PRE>
+<P><B>Fortran receiving app:</B>
+</P>
+<PRE>type(c_ptr) :: cs
+integer :: msgID,nfield
+type(c_ptr) :: ptr,pfieldID,pfieldtype,pfieldlen
+integer(c_int), pointer :: fieldID(:) => null()
+integer(c_int), pointer :: fieldtype(:) => null()
+integer(c_int), pointer :: fieldlen(:) => null() 
+</PRE>
+<PRE>msgID = cslib_recv(cs,nfield,pfieldID,pfieldtype,pfieldlen)
+call c_f_pointer(pfieldID,fieldID,[nfield])
+call c_f_pointer(pfieldtype,fieldtype,[nfield])
+call c_f_pointer(pfieldlen,fieldlen,[nfield]) 
+</PRE>
+<P><B>Python sending app:</B>
+</P>
+<PRE>msgID = 1
+nfield = 10
+cs.send(msgID,nfield)     # cs = object created by CS.open() 
+</PRE>
+<P><B>Python receiving app:</B>
+</P>
+<PRE>msgID,nfield,fieldID,fieldtype,fieldlen = cs.recv() 
+</PRE>
+<P><B>Comments:</B>
+</P>
+<P>For the send() method, the <I>msgID</I> is an integer identifier chosen by
+the sender, so the receiver can interpret the message accordingly.  It
+can be positive, negative, or zero.  <I>Nfield</I> is the number of data
+fields in the message.  Nfield can be >= 0.
+</P>
+<P>Nfield is returned by recv(). FieldID, fieldtype, and fieldlen are
+vectors of length nfield.  They contain the field ID, field data type,
+and field length for each field (explained below).  These vectors are
+allocated by the CSlib, which just returns pointers to the vectors.
+The values in those vectors are those specified by the sender, in the
+pack() methods that follow.
+</P>
+<P>For the C cslib_recv(), note that the address of nfield, fieldID,
+fieldtype, fieldlen are passed.
+</P>
+<P>For the Fortran cslib_recv(), pfieldID, pfieldtype, pfieldlen are
+returned as pointers.  The c_f_pointer() function converts them to
+Fortran vectors of length nfield.
+</P>
+<HR>
+
+<HR>
+
+<H4><A NAME = "packone"></A>Pack and unpack a single value 
+</H4>
+<P>A single value is a 32-bit integer, 64-bit integer, 32-bit floating
+point value, or a 64-bit floating point value.
+</P>
+<P><B>API:</B>
+</P>
+<PRE>void pack_int(int id, int value);
+void pack_int64(int id, int64_t value);
+void pack_float(int id, float value);
+void pack_double(int id, double value); 
+</PRE>
+<PRE>int unpack_int(int id);
+int64_t unpack_int64(int id);
+float unpack_float(int id);
+double unpack_double(int id); 
+</PRE>
+<P><B>C++ sending app:</B>
+</P>
+<PRE>int id = 1;          // different for each pack call
+int oneint = 1;
+int64_t oneint64 = 3000000000;
+float onefloat = 1.5;
+double onedouble = 1.5; 
+</PRE>
+<PRE>cs->pack_int(id,oneint);       // cs = object created by CSlib()
+cs->pack_int64(id,oneint64);
+cs->pack_float(id,onefloat);
+cs->pack_double(id,onedouble); 
+</PRE>
+<P><B>C++ receiving app:</B>
+</P>
+<P>int id = fieldID[0];          // different for each unpack call
+</P>
+<PRE>int oneint = cs->unpack_int(id);
+int64_t oneint64 = cs->unpack_int64(id);
+float onefloat = cs->unpack_float(id);
+double onedouble = cs->unpack_double(id); 
+</PRE>
+<P><B>C sending app:</B>
+</P>
+<PRE>void *cs;        // ptr returned by cslib_open()
+int id = 1;
+int oneint = 1;
+int64_t oneint64 = 3000000000;
+float onefloat = 1.5;
+double onedouble = 1.5; 
+</PRE>
+<PRE>cslib_pack_int(cs,id,oneint);
+cslib_pack_int64(cs,id,oneint64);
+cslib_pack_float(cs,id,onefloat);
+cslib_pack_double(cs,id,onedouble); 
+</PRE>
+<P><B>C receiving app:</B>
+</P>
+<PRE>void *cs;
+int id = fieldID[0]; 
+</PRE>
+<PRE>int oneint = cslib_unpack_int(cs,id);
+int64_t oneint64 = cslib_unpack_int64(cs,id);
+float onefloat = cslib_unpack_float(cs,id);
+double onedouble = cslib_unpack_double(cs,id); 
+</PRE>
+<P><B>Fortran sending app:</B>
+</P>
+<PRE>type(c_ptr) :: cs      ! ptr returned by cslib_open()
+integer(4) :: id = 1
+integer(4) :: oneint = 1
+integer(8) :: oneint64 = 3000000000
+real(4) :: onefloat = 1.5
+real(8) :: onedouble = 1.5 
+</PRE>
+<PRE>call cslib_pack_int(cs,id,oneint)
+call cslib_pack_int64(cs,id,oneint64)
+call cslib_pack_float(cs,id,onefloat)
+call cslib_pack_double(cs,id,onedouble) 
+</PRE>
+<P><B>Fortran receiving app:</B>
+</P>
+<PRE>type(c_ptr) :: cs
+integer(4) :: oneint
+integer(8) :: oneint64
+real(4) :: onefloat
+real(8) :: onedouble
+integer(4) :: id = fieldID(1) 
+</PRE>
+<PRE>oneint = cslib_unpack_int(cs,id)
+oneint64 = cslib_unpack_int64(cs,id)
+onefloat = cslib_unpack_float(cs,id)
+onedouble = cslib_unpack_double(cs,id) 
+</PRE>
+<P><B>Python sending app:</B>
+</P>
+<PRE>id = 1
+oneint = 1
+oneint64 = 3000000000
+onefloat = 1.5
+onedouble = 1.5 
+</PRE>
+<PRE>cs.pack_int(id,oneint)            # cs = object created by CS.open()
+cs.pack_int64(id,oneint64)
+cs.pack_float(id,onefloat)
+cs.pack_double(id,onedouble) 
+</PRE>
+<P><B>Python receiving app:</B>
+</P>
+<PRE>id = fieldID[0] 
+</PRE>
+<PRE>oneint = cs.unpack_int(id)
+oneint64 = cs.unpack_int64(id)
+onefloat = cs.unpack_float(id)
+onedouble = cs.unpack_double(id) 
+</PRE>
+<P><B>Comments:</B>
+</P>
+<P>For all the pack() methods, <I>id</I> is an identifier the sending app
+chooses for each field it packs.  These can normally just be
+1,2,3,...,N for N fields, but that is not required.  Each id can be
+positive, negative, or zero.  For the unpack() methods, the receiving
+app can access the list of field IDs from the fieldID vector returned
+by recv().
+</P>
+<HR>
+
+<HR>
+
+<H4><A NAME = "packstring"></A>Pack and unpack a string 
+</H4>
+<P><B>API:</B>
+</P>
+<PRE>void pack_string(int id, char *string);
+char *unpack_string(int id); 
+</PRE>
+<P><B>C++ sending app:</B>
+</P>
+<PRE>txt = (char *) "hello world";
+int id = 1; 
+</PRE>
+<PRE>cs->pack_string(id,txt);       // cs = object created by CSlib() 
+</PRE>
+<P><B>C++ receiving app:</B>
+</P>
+<PRE>int id = fieldID[0]; 
+</PRE>
+<PRE>char *txt = cs->unpack_string(id); 
+</PRE>
+<P><B>C sending app:</B>
+</P>
+<PRE>void *cs;        // ptr returned by cslib_open()
+int id = 1;
+txt = (char *) "hello world"; 
+</PRE>
+<PRE>cslib_pack_string(cs,id,txt); 
+</PRE>
+<P><B>C receiving app:</B>
+</P>
+<PRE>void *cs;
+int id = fieldID[0];
+char *txt = cslib_unpack_string(cs,id); 
+</PRE>
+<P><B>Fortran sending app:</B>
+</P>
+<PRE>type(c_ptr) :: cs      ! ptr returned by cslib_open()
+character(len=32) :: txt = "hello world"
+integer(4) :: id = 1 
+</PRE>
+<PRE>call cslib_pack_string(cs,id,trim(txt)//c_null_char) 
+</PRE>
+<P><B>Fortran receiving app:</B>
+</P>
+<PRE>type(c_ptr) :: cs
+type(c_ptr) :: ptr
+character(c_char), pointer :: txt(:) => null()
+integer(4) :: id = fieldID(1) 
+</PRE>
+<PRE>ptr = cslib_unpack_string(cs,id)
+call c_f_pointer(ptr,txt,[fieldlen(1)-1]) 
+</PRE>
+<P><B>Python sending app:</B>
+</P>
+<PRE>txt = "hello world"
+id = 1 
+</PRE>
+<PRE>cs.pack_string(id,txt)    # cs = object created by CS.open() 
+</PRE>
+<P><B>Python receiving app:</B>
+</P>
+<PRE>id = fieldID[0] 
+</PRE>
+<PRE>txt = cs.unpack_string(id) 
+</PRE>
+<P><B>Comments:</B>
+</P>
+<P>The memory for the string returned by unpack_string() is owned by the
+CSlib.  It just returns a pointer to the app.
+</P>
+<P>For Fortran, the trim() function removes trailing space.  A
+c_null_char is appended to the pack string to make it a
+NULL-terminated C-style string.  A pointer to the string is returned
+by cslib_unpack_string().  The c_f_pointer() function converts it to a
+Fortran style string of length N-1 to remove the trailing NULL.
+</P>
+<HR>
+
+<HR>
+
+<H4><A NAME = "packdata"></A>Pack and unpack multiple datums 
+</H4>
+<P>The pack() and unpack() methods are for exchanging multiple datums of
+the same data type, which can represent contiguous 1d vectors or
+multidimensional arrays (2d, 3d, etc) of datums.  The set size can be
+one, i.e. a single value.  Here we give examples for vectors.  The
+syntax for declaring multidimensional arrays in the native langauges
+are different, so that is <A HREF = "#packarray">discussed below</A>.
+</P>
+<P>Use these methods if all an app's processors send/receive a copy of
+the entire field.  Use the parallel versions (below) if the field data
+is distributed across the sending or receiving app processors.
+</P>
+<P>The syntax for 64-bit floating point datums (float64) is shown here.
+The comments indicate what to change for 32-bit integers (int32),
+64-bit integers (int64), or 32-bit floating point (float32).
+</P>
+<P><B>API:</B>
+</P>
+<PRE>void pack(int id, int ftype, int flen, void *data);
+void *unpack(int id); 
+</PRE>
+<P><B>C++ sending app:</B>
+</P>
+<PRE>int id = 1;
+int ftype = 4;           // 1 for int32, 2 for int64 = 2, 3 for float32
+int flen = 100;
+double *sdata = (double *) malloc(flen*sizeof(double));  // double -> int for int32, int64_t for int64, float for float32 
+</PRE>
+<PRE>cs->pack(id,ftype,flen,sdata); 
+</PRE>
+<P><B>C++ receiving app:</B>
+</P>
+<PRE>int id = fieldID[0] 
+</PRE>
+<PRE>double *rdata = (double *) cs->unpack(id);     // double -> int for int32, int64_t for int64, float for float32 
+</PRE>
+<P><B>C sending app:</B>
+</P>
+<PRE>void *cs;          // ptr returned by cslib_open()
+int id = 1;
+int ftype = 4;         // 1 for int32, 2 for int64 = 2, 3 for float32
+int flen = 100;
+double *sdata = (double *) malloc(flen*sizeof(double));     // double -> int for int32, int64_t for int64, float for float32 
+</PRE>
+<PRE>cslib_pack(cs,id,ftype,flen,sdata); 
+</PRE>
+<P><B>C receiving app:</B>
+</P>
+<PRE>void *cs;
+int id = fieldID[0]; 
+</PRE>
+<PRE>double *rdata = (double *) cslib_unpack(cs,id);     // double -> int for int32, int64_t for int64, float for float32 
+</PRE>
+<P><B>Fortran sending app:</B>
+</P>
+<PRE>type(c_ptr) :: cs      ! ptr returned by cslib_open()
+integer(4) :: id = 1
+integer(4) :: ftype = 4         ! 1 for int32, 2 for int64 = 2, 3 for float32
+integer :: flen = 100
+real(8), allocatable, target :: sdata(:)     ! real(8) -> integer(4) for int32, integer(8) for int64, real(4) for float32
+allocate(sdata(flen)) 
+</PRE>
+<PRE>call cslib_pack(cs,id,ftype,flen,c_loc(sdata)) 
+</PRE>
+<P><B>Fortran receiving app:</B>
+</P>
+<PRE>type(c_ptr) :: cs
+integer(4) :: id = fieldID(1)
+integer(4) :: flen = fieldlen(1)
+type(c_ptr) :: ptr
+real(c_double), pointer :: rdouble(:) => null()      ! real(c_double) -> integer(c_int) for int32, integer(c_int64_t) for int64, real(c_float) for float32 
+</PRE>
+<PRE>ptr = cslib_unpack(cs,id)
+call c_f_pointer(ptr,rdata,[flen]) 
+</PRE>
+<P><B>Python sending app:</B>
+</P>
+<PRE>id = 3
+ftype = 4      # 1 for int32, 2 for int64 = 2, 3 for float32
+flen = 100
+dtype = 1,2,3   # to send Python list, Numpy array, ctypes vector 
+</PRE>
+<PRE>if dtype == 1:                      # Python list
+ sdata = flen*[0]
+elif dtype == 2:                    # Numpy 1d array
+ sdata = np.zeros(flen,np.float)    # float -> intc for int32, int64 for int64, float32 for float32
+elif dtype == 3:                    # ctypes vector
+ sdata = (ctypes.c_double * flen)()   # c_double -> c_int for int32, c_longlong for int64, c_float for float32 
+</PRE>
+<PRE>cs.pack(id,ftype,flen,sdata)    # cs = object created by CS.open() 
+</PRE>
+<P><B>Python receiving app:</B>
+</P>
+<PRE>id = fieldID[0]
+dtype = 1,2,3     # to return Python list, Numpy 1d array, ctypes vector 
+</PRE>
+<PRE>rdata = cs.unpack(id,tflag=dtype) # tflag is optional, default = 3 for ctypes 
+</PRE>
+<P><B>Comments:</B>
+</P>
+<P>For pack(), <I>ftype</I> specifies the type of datums in the field:
+</P>
+<UL><LI>ftype = 1 = 32-bit integers
+<LI>ftype = 2 = 64-bit integers
+<LI>ftype = 3 = 32-bit floating point
+<LI>ftype = 4 = 64-bit floating point 
+</UL>
+<P>For pack(), <I>flen</I> is the number of datums in the field.  Flen can be
+0 or more.
+</P>
+<P>The final data argument for pack() is a pointer to contiguous chunk of
+memory that stores the <I>flen</I> datums.  If <I>flen</I> = 0, data can be
+NULL.  If <I>flen</I> = 1, and a scalar values is passed, then the argument
+should be the address of the scalar value, since the CSlib interprets
+it as a vector.  Note that data can be passed as a pointer to any data
+type, (int, int64_t, float, double, etc).  The library treats it as a
+void pointer and casts it to the appropriate type to match the ftype
+argument.
+</P>
+<P>Pack() can be passed a pointer to any data type, (int, int64_t, float,
+double, etc).  The CSlib treats it as a void pointer and casts it to
+the appropriate type to match the ftype value.
+</P>
+<P>Unpack() returns a "void *" pointer to the field data.  The app casts
+the pointer to the appropriate data type.
+</P>
+<P>There is no allocation of memory by the app for calls to unpack().
+The CSlib owns the memory for the data and just returns a pointer to
+the app.
+</P>
+<P>For the Fortran unpack(), the function c_f_pointer() must be called to
+map the returned C pointer to a Fortran variable.  The final argument
+of c_f_pointer is a "shape" argument with the length of the vector.
+This is known by the receiving app as a value in the fieldlen vector
+returned by recv().
+</P>
+<P>For the Python pack(), data can be passed as a Python list (or tuple),
+a Numpy array, or a ctypes vector.  Examples for how to create these
+data structures are shown above.  All of these data types are accessed
+the same in subsequent Python code, e.g. rdata[13].
+</P>
+<P>The Python unpack() takes a final optional argument tflag (for type
+flag).  It can be specified as 1,2,3 to return the vector as a Python
+list, Numpy array, or ctypes vector.  The default is tflag = 3 =
+ctypes vector.
+</P>
+<HR>
+
+<HR>
+
+<H4><A NAME = "packparallel"></A>Pack and unpack multiple datums in parallel 
+</H4>
+<P>Similar to pack() and unpack(), the pack_parallel() and
+unpack_parallel() methods are for passing a contiguous list of datums
+which can represent 1d vectors or multidimensional arrays (2d, 3d,
+etc) of datums.  Here we give examples for vectors.  The syntax for
+declaring multidimensional arrays is different, so those are
+<A HREF = "#packarray">discussed below</A>.
+</P>
+<P>Use these methods if the field data is distributed across the sending
+or receiving app processors.  Use the pack() and unpack() methods
+above if all an app's processors send/receive a copy of the entire
+field.
+</P>
+<P>The syntax for 64-bit floating point datums (float64) is shown here.
+The comments indicate what to change for 32-bit integers (int32),
+64-bit integers (int64), or 32-bit floating point (float32).
+</P>
+<P><B>API:</B>
+</P>
+<PRE>void pack_parallel(int id, int ftype, int nlocal, int *ids, int nper, void *data);
+void unpack_parallel(int id, int nlocal, int *ids, int nper, void *data); 
+</PRE>
+<P><B>C++ sending app:</B>
+</P>
+<PRE>int id = 1;
+int ftype = 4;           // 1 for int32, 2 for int64 = 2, 3 for float32
+int nlocal = 100;        // could be different for each proc
+int nper = 1;            // for a vector (see multidimensional arrays below)
+int *ids = (int *) malloc(nlocal*sizeof(int));  // this proc's datum IDs
+double *sdata = (double *) malloc(nlocal*sizeof(double));    // double -> int for int32, int64_t for int64, float for float32 
+</PRE>
+<PRE>cs->pack_parallel(id,ftype,nlocal,ids,nper,sdata); 
+</PRE>
+<P><B>C++ receiving app:</B>
+</P>
+<PRE>int id = fieldID[0];
+int nlocal = 200;
+int nper = 1;
+int *ids = (int *) malloc(nlocal*sizeof(int));
+double *rdata = (float *) malloc(nlocal*sizeof(double));    // double -> int for int32, int64_t for int64, float for float32 
+</PRE>
+<PRE>cs->unpack_parallel(id,nlocal,ids,nper,rdata); 
+</PRE>
+<P><B>C sending app:</B>
+</P>
+<PRE>void *cs;        // ptr returned by cslib_open()
+int id = 1;
+int ftype = 4;    // 1 for int32, 2 for int64 = 2, 3 for float32
+int nlocal = 100;
+int nper = 1;
+int *ids = (int *) malloc(nlocal*sizeof(int));
+double *sdata = (double *) malloc(nlocal*sizeof(double));     // double -> int for int32, int64_t for int64, float for float32 
+</PRE>
+<PRE>cs->pack_parallel(id,ftype,nlocal,ids,nper,sdata); 
+</PRE>
+<P><B>C receiving app:</B>
+</P>
+<PRE>void *cs;
+int id = fieldID[0];
+int nlocal = 200;
+int nper = 1;
+int *ids = (int *) malloc(nlocal*sizeof(int));
+double *rdata = (float *) malloc(nlocal*sizeof(double));     // double -> int for int32, int64_t for int64, float for float32 
+</PRE>
+<PRE>cslib_unpack_parallel(cs,id,nlocal,ids,nper,rdata); 
+</PRE>
+<P><B>Fortran sending app:</B>
+</P>
+<PRE>type(c_ptr) :: cs      ! ptr returned by cslib_open()
+integer(4) :: id = 1
+integer(4) :: ftype = 4      ! 1 for int32, 2 for int64 = 2, 3 for float32
+integer :: nlocal = 100
+integer :: nper = 1
+integer(4), allocatable, target :: ids(:)
+real(8), allocatable, target :: sdata(:)      ! real(8) -> integer(4) for int32, integer(8) for int64, real(4) for float32
+allocate(ids(nlocal))
+allocate(sdata(nlocal)) 
+</PRE>
+<PRE>call cslib_pack_parallel(cs,id,ftype,nlocal,c_loc(ids),1,c_loc(sdata)) 
+</PRE>
+<P><B>Fortran receiving app:</B>
+</P>
+<PRE>type(c_ptr) :: cs
+integer(4) :: id = fieldID(1)
+integer :: nlocal = 200
+integer :: nper = 1
+integer(4), allocatable, target :: ids(:)
+real(8), allocatable, target :: rdata(:)     ! real(8) -> integer(4) for int32, integer(8) for int64, real(4) for float32
+allocate(ids(nlocal))
+allocate(rdata(nlocal)) 
+</PRE>
+<PRE>cslib_unpack_parallel(cs,id,nlocal,c_loc(ids),nper,c_loc(rdata)) 
+</PRE>
+<P><B>Python sending app:</B>
+</P>
+<PRE>id = 1
+ftype = 4         # 1 for int32, 2 for int64 = 2, 3 for float32
+nlocal = 100
+nper = 1
+dtype = 1,2,3   # to send Python list, Numpy array, ctypes vector 
+</PRE>
+<PRE>ids = nlocal*[0] 
+</PRE>
+<PRE>if dtype == 1:                      # Python list
+ sdata = nlocal*[0]
+elif dtype == 2:                    # Numpy 1d array
+ sdata = np.zeros(nlocal,np.float)   # float -> intc for int32, int64 for int64, float32 for float32
+elif dtype == 3:                    # ctypes vector
+ sdata = (ctypes.c_double * nlocal)()    # c_double -> c_int for int32, c_longlong for int64, c_float for float32 
+</PRE>
+<PRE>cs.pack_parallel(id,ftype,nlocal,ids,nper,sdata) 
+</PRE>
+<P><B>Python receiving app:</B>
+</P>
+<PRE>id = fieldID[0]
+nlocal = 200
+nper = 1
+dtype = 1,2,3     # to return Python list, Numpy array, ctypes vector
+ids = nlocal*[0] 
+</PRE>
+<PRE>rdata = cs.unpack_parallel(id,nlocal,ids,nper,tflag=dtype)    # tflag is optional, default = 3 for ctypes 
+</PRE>
+<P><B>Comments:</B>
+</P>
+<P>For these parallel methods, <I>nlocal</I> is the number of elements of
+global data each processor owns, where an "element" is <I>nper</I> datums.
+See the next section on multidimensional arrays for code examples
+where nper > 1.
+</P>
+<P>Each element has a unique global ID from 1 to Nglobal, where Nglobal =
+the sum of <I>nlocal</I> across all processors.  <I>Ids</I> is a 1d integer
+vector of length <I>nlocal</I> containting the subset of global IDs the
+processor owns.  See code examples at the end of this page for how
+processors might partition the data and initialize their <I>nloca</I> and
+<I>ids</I>.
+</P>
+<P>The data argument for pack_parallel() and unpack_parallel() is a
+pointer to a contiguous 1d vector.  In this case, it stores the
+nper*Nlocal datums owned by the processor.  The first <I>nper</I> values
+are the datums for the first element in the <I>ids</I> vector, the next
+Nper values are the datums for the second element, etc.
+</P>
+<P>Unlike for unpack(), the memory for the field data returned by
+unpack_parallel() is stored by the app; it is not stored internal to
+the CSlib.  This means the app must allocate the memory before calling
+unpack_parallel().
+</P>
+<P>For the Python code, see the comments above in <A HREF = "#pack">this section</A>
+for the use of dtype and Python lists, Numpy arrays, ctypes vectors.
+</P>
+<HR>
+
+<HR>
+
+<H4><A NAME = "packmulti"></A>Pack and unpack of multidimensional arrays 
+</H4>
+<P>Multidimensional arrays (2d,3d,etc) can be passed as field data using
+the same pack(), unpack(), pack_parallel(), unpack_parallel()
+described above.  But ONLY if their numeric values are stored in
+contiguous memory.  We illustrate in this section how to declare and use 
+such arrays with the 4 pack/unpack methods.
+</P>
+<P>For C/C++, a malloc2d() function is used here to allocate contiguous
+memory for the array data.  Code for this function is given in <A HREF = "language.html">this
+section</A>.  It's just an example of how to create
+appropriate multidimensional arrays for use with the CSlib.  It's not
+needed for Fortran or Python, because their multidimensional arrays
+use contiguous memory.
+</P>
+<P>Note that if one of the client or server apps is written in Fortran,
+but the other is not, and you send an array of data from one to the
+other, you should insure data is ordered consistently in the two
+arrays.  This issue is also discussed in <A HREF = "language.html">this section</A>.
+</P>
+<P>The syntax for 64-bit floating point datums (float64) is shown here.
+The comments indicate what to change for 32-bit integers (int32),
+64-bit integers (int64), or 32-bit floating point (float32).  It
+should also be clear how to adapt the syntax below for 3d, 4d, etc
+arrays.
+</P>
+<P><B>API:</B>
+</P>
+<PRE>void pack(int id, int ftype, int flen, void *data);
+void pack_parallel(int id, int ftype, int nlocal, int *ids, int nper, void *data); 
+</PRE>
+<PRE>void *unpack(int id);
+void unpack_parallel(int id, int nlocal, int *ids, int nper, void *data); 
+</PRE>
+<P><B>C++ sending app:</B>
+</P>
+<PRE>int id = 1;
+int ftype = 4;       // 1 for int32, 2 for int64 = 2, 3 for float32
+int flen = 1000;
+int nlocal = 100;
+int nper = 3;
+int *ids = (int *) malloc(nlocal*sizeof(int));
+double **sarray = (double **) malloc2d(flen,nper); // double -> int for int32, int64_t for int64, float for float32
+double **sarraylocal = (double **) malloc2d(nlocal,nper); 
+</PRE>
+<P>cs->pack(id,ftype,nper*flen,&sarray[0][0]);   // note nper*flen
+cs->pack_parallel(id,ftype,nlocal,ids,nper,&sarraylocal[0][0]);
+</P>
+<P><B>C++ receiving app:</B>
+</P>
+<PRE>int id = fieldID[0];
+int nlocal = 200;
+int nper = 3;
+int flen = fieldlen[0] / nper;    // fieldlen = nper*flen
+int *ids = (int *) malloc(nlocal*sizeof(int));
+double **rarray = (double **) malloc2d(flen,nper);  // double -> int for int32, int64_t for int64, float for float32
+double **rarraylocal = (double **) malloc2d(nlocal,nper); 
+</PRE>
+<PRE>double *rvec = (double *) cs->unpack(id);  // double -> int for int32, int64_t for int64, float for float32
+memcpy(&rarray[0][0],rvec,nper*flen*sizeof(double));  // copy into 2d array if desired
+cs->unpack_parallel(id,nlocal,ids,nper,&rarraylocal[0][0]); 
+</PRE>
+<P><B>C sending app:</B>
+</P>
+<PRE>void *cs;        // ptr returned by cslib_open()
+int id = 1;
+int ftype = 4;      // 1 for int32, 2 for int64 = 2, 3 for float32
+int flen = 1000;
+int nlocal = 100;
+int nper = 3;
+int *ids = (int *) malloc(nlocal*sizeof(int));
+double **sarray = (double **) malloc2d(flen,nper); // double -> int for int32, int64_t for int64, float for float32
+double **sarraylocal = (double **) malloc2d(nlocal,nper); 
+</PRE>
+<P>cslib_pack(cs,id,ftype,nper*flen,&sarray[0][0]);
+cslib_pack_parallel(cs,id,ftype,nlocal,ids,nper,&sarraylocal[0][0]);
+</P>
+<P><B>C receiving app:</B>
+</P>
+<PRE>void *cs;
+int id = fieldID[0];
+int nlocal = 200;
+int nper = 3;
+int flen = fieldlen[5] / nper;
+int *ids = (int *) malloc(nlocal*sizeof(int));
+double **rarray = (double **) malloc2d(flen,3);  // double -> int for int32, int64_t for int64, float for float32
+double **rarraylocal = (double **) malloc2d(nlocal,3); 
+</PRE>
+<PRE>double *rvec = (double *) cslib_unpack(cs,id);  // double -> int for int32, int64_t for int64, float for float32
+memcpy(&rarray[0][0],rvec,nper*flen*sizeof(double));
+cslib_unpack_parallel(cs,id,nlocal,ids,nper,&rarraylocal[0][0]); 
+</PRE>
+<P><B>Fortran sending app:</B>
+</P>
+<PRE>type(c_ptr) :: cs      ! ptr returned by cslib_open()
+integer(4) :: id = 1
+integer(4) :: ftype = 4      ! 1 for int32, 2 for int64 = 2, 3 for float32
+integer(4) :: flen = 1000
+integer :: nlocal = 100
+integer :: nper = 3
+integer(4), allocatable, target :: ids(:)
+real(8), allocatable, target :: sarray(:,:),sarraylocal(:,:)  ! real(8) -> integer(4) for int32, integer(8) for int64, real(4) for float32
+allocate(ids(nlocal))
+allocate(sarray(nper,flen))   ! note 3xN, not Nx3
+allocate(sarraylocal(nper,nlocal)) 
+</PRE>
+<PRE>call cslib_pack(cs,id,ftype,flen,c_loc(sarray))
+call cslib_pack_parallel(cs,id,ftype,nlocal,c_loc(ids),nper,c_loc(sarraylocal)) 
+</PRE>
+<P><B>Fortran receiving app:</B>
+</P>
+<PRE>type(c_ptr) :: cs
+integer(4) :: id = fieldID(1)
+integer :: nlocal = 200
+integer :: nper = 3
+integer(4) :: flen = fieldlen(1) / nper
+integer(4), allocatable, target :: ids(:)
+type(c_ptr) :: ptr
+real(c_double), pointer :: rarray(:) => null()  ! real(c_double) -> integer(c_int) for int32, integer(c_int64_t) for int64, real(c_float) for float32
+real(8), allocatable, target :: rarraylocal(:,:)   ! real(8) -> integer(4) for int32, integer(8) for int64, real(4) for float32
+allocate(ids(nlocal))
+allocate(rarraylocal(nper,nlocal)) 
+</PRE>
+<PRE>ptr = cslib_unpack(cs,id)
+call c_f_pointer(ptr,rarray,[nper,flen])
+call cslib_unpack_parallel(cs,id,nlocal,c_loc(ids),nper,c_loc(rarraylocal)) 
+</PRE>
+<P><B>Python sending app:</B>
+</P>
+<PRE>id = 1
+ftype = 4             # 1 for int32, 2 for int64 = 2, 3 for float32
+flen = 1000
+nlocal = 100
+nper = 1
+dtype = 1,2,3   # to send Python list, Numpy array, ctypes vector 
+</PRE>
+<PRE>ids = nlocal*[0] 
+</PRE>
+<PRE>if dtype == 1:                      # Python list of lists
+ sarray = [nper*[0] for i in range(flen)]
+ sarraylocal = [nper*[0] for i in range(nlocal)]
+elif dtype == 2:                    # Numpy 2d arrays
+ sarray = np.zeros((flen,nper),np.float)   # float -> intc for int32, int64 for int64, float32 for float32
+ sarraylocal = np.zeros((nlocal,nper),np.float)
+elif dtype == 3:                    # ctypes 2d arrays
+ sarray = ((ctypes.c_double * nper) * flen)()  # c_double -> c_int for int32, c_longlong for int64, c_float for float32
+ sarraylocal = ((ctypes.c_double * nper) * nlocal)() 
+</PRE>
+<PRE>cs.pack(id,ftype,flen,sarray)
+cs.pack_parallel(id,ftype,nlocal,ids,nper,sarraylocal) 
+</PRE>
+<P><B>Python receiving app:</B>
+</P>
+<PRE>id = fieldID[0]
+nlocal = 200
+nper = 1
+flen = fieldlen[0] / nper
+dtype = 1,2,3     # to create Python list, Numpy array, ctypes vector from returned data
+ids = nlocal*[0] 
+</PRE>
+<PRE>rvec = cs.unpack(id,tflag=dtype)   # tflag is optional, default = 3 for ctypes
+rveclocal = cs.unpack_parallel(id,nlocal,ids,nper,tflag=dtype)
+if dtype == 1:                 # Python list of lists
+ rarray = [rvec[i:i+nper] for i in range(0,len(rvec),nper)]
+ rarraylocal = [rveclocal[i:i+nper] for i in range(0,len(rveclocal),nper)]
+elif dtype == 2:               # Numpy arrays
+ rarray = np.reshape(rvec,(flen,nper))
+ rarraylocal = np.reshape(rveclocal,(nlocal,nper)) 
+</PRE>
+<P><B>Comments:</B>
+</P>
+<P>Which return vecs (not arrays), which require data copies.
+</P>
+<P>For Python, when unpacking to a Python list (dtype=1), a 1d Python
+list is returned by unpack() and unpack_parallel().  The lists can be
+restructured into a 2d list of lists, as shown above.  This requires a
+data copy (as did the creation of the 1d Python list).
+</P>
+<P>For Python, when unpacking to a Numpy array (dtype=2), a 1d Numpy
+vector is returned by unpack() and unpack_parallel() since the CSlib
+does not know the dimensionality of the array desired by the caller.
+But the Numpy reshape() function can then be used to morph the data
+into a multidimensional array (without a copy).
+</P>
+<P>For Python, when unpacking to ctypes (dtype=3), a 1d ctypes vector is
+returned by unpack() and unpack_parallel().
+</P>
+<P>NOTE: should show how to convert (copy?) ctypes vec to ctypes array
+</P>
+<HR>
+
+<HR>
+
+<H4><A NAME = "memory"></A>Who owns the data memory 
+</H4>
+<P>In this context, "owns" means allocates memory to store the data and
+later frees it.
+</P>
+<P>For all the pack methods used when sending a message, the app owns the
+data memory.
+</P>
+<P>For the recv() method, the CSlib owns the 3 returned field vectors:
+fieldID, fieldtype, fieldlen.
+</P>
+<P>For the unpack() and unpack_string() methods, the CSlib owns the data.
+Only a pointer is returned to the app.
+</P>
+<P>For the unpack_parallel() method, the app owns the data.  It allocates
+the data before calling unpack_parallel().  The CSlib fills in values
+for the datums owned by each processor.
+</P>
+<P>All of these rules hold for C/C++ and Fortran apps.  In Fortran, data
+owned by the CSlib is not copied into Fortran vectors, arrays, strings
+in the code examples above.  Instead, the variables are declared as
+Fortran pointers, and they point to the memory allocated inside the
+CSlib.
+</P>
+<P>For Python apps, the rules are sightly different, because of the
+support for different Python data types (Python lists, Numpy arrays,
+ctypes vectors).  A returned string is copied into a Python string,
+owned by the app, If data owned by the CSlib is returned as a Python
+list, it is copied and the app owns the list.  If data owned by the
+CSlib is returned as a Numpy array or ctypes vector, no copy is
+performed.  The Numpy or ctypes object points to memory allocated
+inside the CSlib.  If new Python data structures are created after the
+unpack(), e.g.
+</P>
+<P>Note that in an efficiency sense, all of this means that data received
+as a message by the CSlib is not copied when invoking methods where
+the CSlib owns the data.  For methods where the app owns the data, a
+copy is performed.
+</P>
+<HR>
+
+<H4><A NAME = "persistence"></A>Persistence of data 
+</H4>
+<P>IMPORTANT NOTE: The CSlib reuses its internal data buffers for every
+send and receive.  Thus if the CSlib owns the memory for data that is
+received/unpacked by the app (as discussed in the previous
+sub-section), the pointers returned to the app will NOT be valid once
+the app issues the next send() and pack() calls.  The app MUST make
+its own copy of the data if persistence is required.  This is true
+even if the app simply wishes to in-place modify a vector of received
+field data to send it back to the other app.  To do this, the app
+should make a copy of the data, modify the copy, then send the copy.
+</P>
+<P>As explained in the previous sub-section, this applies to the field
+vectors returned by recv(), the string returned by unpack_string(),
+and the data returned by unpack().  It does not apply to the data
+returned by unpack_parallel(), because the app owns that memory.
+</P>
+<HR>
+
+<H4><A NAME = "matching"></A>No matching requirement for pack and unpack methods 
+</H4>
+<P>All the code examples above show the sending and receiving app
+using matching pack() and unpack() methods for the same field data.
+However, in general that is not required.
+</P>
+<P>Say an app sends a field with a single integer via pack_int().
+The receiving app can receive that field data via unpack_int().
+But it could also use unpack(), as follows in C++:
+</P>
+<P>int id = 1;
+int *vec = (int *) cs->unpack(id);   // length of vec will be 1
+value = vec<B>0</B>;
+</P>
+<P>Or a parallel app could even use unpack_parallel() as follows,
+assuming only one proc sets nlocal = 1 and ids.
+</P>
+<PRE>int id = 1;
+int nlocal = 1;         // other procs set nlocal = 0
+int nper = 1;
+int *ids = NULL;
+int *rvec = NULL;
+if (nlocal) {
+  ids = (int *) malloc(nlocal*sizeof(int));
+  ids<B>0</B> = 1;
+  rvec = (int *) malloc(nlocal*sizeof(double));
+}
+cs->unpack_parallel(id,nlocal,ids,nper,rvec);
+value = rvec<B>0</B>; 
+</PRE>
+<P>Similarly, one app can use pack() to send a field, and the other app
+could use unpack_parallel() to receive the field.  Or vice versa.
+This is because the internal message format within the CSlib is
+independent of how the message was packed.  <A HREF = "#organize">This section</A>
+below gives details on how the field data is organized for
+pack_parallel() and unpack_parallel().
+</P>
+<P>Also note, that if both the sending and receiving app are parallel,
+and use pack_parallel() and unpack_parallel() for the same field,
+there is no requirement that the two apps distribute the field data in
+the same way.  In fact two apps may be running on different numbers of
+processors so identical distributions are not even possible.
+</P>
+<HR>
+
+<H4><A NAME = "sync"></A>Synchronizing methods 
+</H4>
+<P>In this context, synchronizing refers to how a parallel app uses the
+CSlib.  If a CSlib method is synchronizing it means all processors in
+a parallel app must call it at the same time (or the app will pause
+until all its processors make the call).  Non-synchronizing calls do
+not need to be called at the same time (or at all) by individual
+processors.
+</P>
+<P>The recv() call is synchronizing.  All processors must call it
+together because the returned data is communicated to all of them.
+</P>
+<P>None of the unpack() calls are synchronizing.
+</P>
+<P>None of the pack() calls are synchronizing, except for
+pack_parallel().  All processors must call it together since they will
+communicate to gather data for the message.
+</P>
+<P>The send() call is not technically synchronizing in the following
+sense.  The normal way to use the send() and pack() methods to send a
+message from a parallel app is to have all processors call the same
+methods.  However, if pack_parallel() is not used to pack any of the
+fields for a particular message it is OK for the app to only invoke
+the send() and pack() calls from its processor 0.  However, there is
+no harm in having all processors invoke the send() and pack() calls,
+assuming they all have a copy of the send data.
+</P>
+<HR>
+
+<H4><A NAME = "organize"></A>How pack_parallel() and unpack_parallel() organize their data 
+</H4>
+<P>When using pack_parallel(), the field data sent to the other app will
+be the union of the data portions from all the processors.  Thus if
+Nglobal = sum of Nlocal, it will be nper*Nglobal in length.  The
+library uses the <I>ids</I> vectors containing sets of unique global IDs
+from each of the processors to order the data elements from 1 to
+Nglobal in the send message.  As discussed above, the receiving app
+processors can access the field data in one of two ways.  Either via
+the unpack() method, which gives each processor access to the entire
+globally ordered vector with all nper*Nglobal datums.  Or via the
+unpack_parallel() method, which fills a local vector provided by the
+receiving app with nper*Nlocal datums for the elements corresponding
+to the <I>ids</I> vector provided by each receiving processor.
+</P>
+<P>This means that for a serial app, a pack_parallel() call sends the
+same volume of data as a pack() call, but the data that is sent will
+be reordered from 1 to Nglobal using the list of sending <I>ids</I>.
+Likewise for a serial app, an unpack_parallel() call receives the same
+volume of data as an unpack() call, except that the data will be owned
+by the app (not the CSlib) and will be ordered from 1 to Nglobal using
+the list of receiving <I>ids</I>.
+</P>
+<HR>
+
+<H4><A NAME = "vecarray"></A>Referencing a vector containing array data 
+</H4>
+<P>In some of the code examples above for multidimensional arrays, data
+is returned from the CSlib via an unpack methods as a vector.  As
+shown, it can be copied into a 2d array for the app to use.  However,
+to avoid the copy, you can also simply index the contiguous vector
+values using I,J indices with the appropriate 1d offset.
+</P>
+<P>For example, assume the 1d vector contains Nx*Ny values representing a
+2d Nx by Ny array.  The vector values have a C-style ordering where
+the 1st row of values in the array appear first in the vector and are
+followed by the 2nd row, etc.  Then in C syntax:
+</P>
+<PRE>array[i][j] = vector[i*ny + j]; 
+</PRE>
+<P>In Fortran syntax, the vector would be indexed the
+same but array would be declared and indexed as Ny by Nx:
+</P>
+<PRE>real(8) :: array(ny,nx)
+array(j,i) = vector(i*ny + j) 
+</PRE>
+<HR>
+
+<H4><A NAME = "distribute"></A>Distributing data for pack_parallel() and unpack_parallel() 
+</H4>
+<P>These 2 methods allow data to be sent or received which is distributed
+across the processors of a parallel app.
+</P>
+<P>As a concrete example, say that the xyz coordinates of 1000 particles
+are spread across 4 processors with global IDs from 1 to Nglobal =
+1000.  Each processor owns a subset of the particles, indexed by its
+<I>ids</I> vector.  One proc has Nlocal = 230 particles (any subset of the
+global IDs), another has 240, another 250, and another 280.  The
+coords are stored locally in a 2d Nlocal x 3 array of doubles (ftype =
+4), so they can be accessed as coords[i][j], where I = 0 to nlocal-1,
+J = 0,1,2.  Thus nper = 3.  Each processor could then call
+pack_parallel() as follows in C++.  This assumes the data within the
+2d coords array is stored contiguously:
+</P>
+<PRE>cs->pack_parallel(1,4,nlocal,ids,3,&coords[0][0]); 
+</PRE>
+<P>The following code examples in different languages illustrate another
+way a parallel app could distribute the elements of a vector of length
+Nglobal with global IDs from 1 to Nglobal.  The vector elements are
+split evenly across the Nprocs processors in strided fashion.  Nlocal
+= # of datums owned by processor <I>me</I>.  <I>Ids</I> = list of Nlocal global
+IDs owned by processor <I>me</I>.
+</P>
+<P><B>C++ or C:</B>
+</P>
+<PRE>MPI_Init(&argc,&argv);
+MPI_Comm world = MPI_COMM_WORLD;
+int me,nprocs;
+MPI_Comm_rank(world,&me);
+MPI_Comm_size(world,&nprocs); 
+</PRE>
+<PRE>int nglobal = 1000;
+int nlocal = nglobal/nprocs;
+if (me < nglobal % nprocs) nlocal++; 
+</PRE>
+<PRE>int *ids = (int *) malloc(nlocal*sizeof(int));
+int m = 0;
+for (int i = me; i < nglobal; i += nprocs)
+ ids[m++] = i+1; 
+</PRE>
+<P><B>Fortran:</B>
+</P>
+<PRE>Integer :: world,me,nprocs,ierr,nglobal,nlocal
+integer(4), allocatable, target :: ids(:) 
+</PRE>
+<PRE>call MPI_Init(ierr)
+world = MPI_COMM_WORLD
+call MPI_Comm_rank(world,me,ierr)
+call MPI_Comm_size(world,nprocs,ierr) 
+</PRE>
+<PRE>nglobal = 1000
+nlocal = nglobal/nprocs
+if (me < mod(nglobal,nprocs)) nlocal = nlocal + 1 
+</PRE>
+<PRE>allocate(ids(nlocal))
+m = 1
+do i = me+1,nglobal,nprocs
+ ids(m) = i
+ m = m + 1
+enddo 
+</PRE>
+<P><B>Python:</B>
+</P>
+<PRE>from mpi4py import MPI
+world = MPI.COMM_WORLD
+me = world.rank
+nprocs = world.size 
+</PRE>
+<PRE>nglobal = 1000
+nlocal = nglobal/nprocs
+if me < nglobal % nprocs: nlocal += 1 
+</PRE>
+<PRE>ids = nlocal*[0]
+m = 0
+for i in range(me,nglobal,nprocs):
+ ids[m] = i+1
+ m += 1 
+</PRE>
+</HTML>

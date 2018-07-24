@@ -1,0 +1,117 @@
+"CSlib documentation"_Manual.html
+
+Error messages :h3
+
+The CSlib will print an error message and halt when an error condition
+is detected.  Here is more info about these errors.  The first field
+of the messages is which CSlib method triggered the error.
+
+:line
+
+constructor(): CSlib invoked with MPI_Comm but built w/out MPI support
+constructor(): CSlib invoked w/out MPI_Comm but built with MPI support :pre
+
+A serial app (which passes a NULL to the constructor of the CSlib)
+must be linked with a serial version of the CSlib.  Likewise a
+parallel app (which passes an MPI communicator to the constructor of
+the CSlib) must be linked with a parallel version of the CSlib.  See
+"this section"_buildlib.html for how to build the CSlib for serial or
+parallel use.
+
+constructor(): No mpi/one mode for serial lib usage
+constructor(): No mpi/two mode for serial lib usage :pre
+
+If the CSlib is being used in serial, the "mpi/one" and "mpi/two"
+modes of messaging cannot be used.
+
+constructor(): Invalid client/server arg
+constructor(): Unknown mode :pre
+
+The csflag or mode args to the CSlib constructor are incorrect.
+
+constructor(): Library not built with ZMQ support
+constructor(): Server could not make socket connect :pre
+
+These are possible errors when mode = "zmq" is used.  The first error
+means the socket mode (zmq) of messaging cannot be requested if the
+CSlib was built without the ZeroMQ (ZMQ) library.  See "this
+section"_buildlib.html for more info.  The second error occurs is the
+ZMQ library is unable to connect the socket between the client and
+server apps.  Check that the port string was specified correctly for
+both apps.
+
+:line
+
+send(): Invalid nfield
+send(): Message header size exceeds 32-bit integer limit
+send(): Could not open send message file :pre
+
+Nfield must be >= 0.  If it is too large (100s of millions), the 2nd
+error can occur.  The 3rd error occurs when mode = "file" and a
+message file cannot be opened.  Check the syntax of the path/file that
+was specified correctly and that the apps have read/write access to
+the file.
+
+pack(): Reuse of field ID
+pack(): Invalid ftype
+pack(): Invalid flen :pre
+
+The same field ID cannot be packed twice.  Valid ftypes are 1,2,3,4.
+Flen must be >= 0.
+
+pack_parallel(): Reuse of field ID
+pack_parallel(): Invalid ftype
+pack_parallel(): Invalid nlocal
+pack_parallel(): Invalid nper :pre
+
+The same field ID cannot be packed twice.  Valid ftypes are currently
+1,2,3,4.  Nlocal must be >= 0.  Nper must be >= 1.
+
+pack(): Message size exceeds 32-bit integer limit :pre
+
+The size of the entire send message buffer must be <= 2^31 bytes,
+which is around 2 billion bytes.
+
+:line
+
+recv(): Could not open recv message file :pre
+
+The error occurs when mode = "file" and a message file cannot be
+opened.  Check the syntax of the path/file that was specified
+correctly and that the apps have read/write access to the file.
+
+unpack_int(): Unknown field ID        # ditto for int64, float, double, string
+unpack_int(): Mis-match of ftype     # ditto for int64, float, double, string
+unpack_int(): Flen is not 1                # ditto for int64, float, double, but not string :pre
+
+The received message does not conatin the requested field ID.  The
+requested data type (int, int64, float, double, string) does not match
+the data type of the sent field.  The length of the sent field must be
+one to use these unpack methods.  Except for unpack_string() which can
+retrieve a string of any length.
+
+unpack(): Unknown field ID :pre
+
+The received message does not conatin the requested field ID.
+
+unpack_parallel(): Unknown field ID
+unpack_parallel(): Invalid nlocal
+unpack_parallel(): Invalid nper :pre
+
+The received message does not conatin the requested field ID.
+Nlocal must be >= 0.  Nper must be >= 1.
+
+:line
+
+extract(): Invalid flag :pre
+
+Valid flags are currently 1 or 2.
+
+:line
+
+malloc(): Failed to allocate N bytes
+realloc(): Failed to reallocate N bytes
+
+These are interal errors within the CSlib.  A memory allocation or
+reallocate of N bytes failed.  This could be because the allocation
+was too large, or because the system does not have sufficient memory.

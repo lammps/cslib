@@ -1,0 +1,24 @@
+This is the the Client/Server messaging library (CSlib).
+
+The contact author is
+
+Steve Plimpton
+Sandia National Laboratories
+sjplimp@sandia.gov
+http://www.sandia.gov/~sjplimp
+
+The CSlib is distributed as open-source code under the modified
+Berkeley Software Distribution (BSD) License.  See the accompanying
+LICENSE file.
+
+This directory contains the following:
+
+README         this file
+LICENSE        modified BSD license
+doc            doc pages, start with Manual.html
+src            source files for library
+test	       test client/server codes in C++, C, Fortran 90, Python
+
+Note that this is preliminary version of the library.  It will soon
+have a website with a downloadable tarball and also be available on
+GitHub.
