@@ -35,7 +35,7 @@ different languages.
 CSlib(int csflag, char *mode, char *txt, MPI_Comm *pworld);
 ~CSlib(); :pre
 
-"Send a message"_send.html:
+"Send a message"_exchange.html:
 
 void send(int msgID, int nfield);
 void pack_int(int id, int value);
@@ -46,7 +46,7 @@ void pack_string(int id, char *string);
 void pack(int id, int ftype, int flen, void *data);
 void pack_parallel(int id, int ftype, int nlocal, int *ids, int nper, void *data); :pre
 
-"Receive a message"_receive.html:
+"Receive a message"_exchange.html:
 
 int recv(int &nfield, int *&fieldID, int *&fieldtype, int *&fieldlen);
 int unpack_int(int id);

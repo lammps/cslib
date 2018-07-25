@@ -162,7 +162,7 @@ Note that the client and server can run on different machines,
 separated geographically, so long as the server accepts incoming TCP
 requests on the specified port.
 
-NOTE: need to answer these Qs
+TODO: need to answer these Qs
 
 what values can port ID have?
 need port examples for a big cluster, how to find node IP addresses

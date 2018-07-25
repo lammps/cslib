@@ -5,9 +5,10 @@
 </H3>
 <P>The Client/Server library (CSlib) tries to make it easy to couple two
 stand-alone applications (apps) together via a simple messaging
-protocol.  It was designed with scientific codes in mind, but could be
-used by any pair of apps that match the client/server model as
-described in <A HREF = "model.html">this section</A>.
+paradigm, namely the client/server model.  It was designed with
+scientific codes in mind, but could be used by any pair of apps that
+match the client/server model as described in <A HREF = "model.html">this
+section</A>.
 </P>
 <P>The library hides the details of the low-level messaging from the
 apps.  Both apps may be serial, both may be parallel (via MPI), or one
@@ -20,19 +21,20 @@ cannot link to it and call it directly.
 <LI>You wish to run the codes in parallel on different numbers of
 processors.  If the first code calls the other code as a library, and
 you run in parallel with MPI, then both codes run on all the
-processors.  There can be worked around, but the details can be
+processors.  This can be worked around, but the details can be
 ugly. 
 
-<LI>You want to create a generic interface that allows one kind of code A
-to couple to another kind of code B.  There may be multiple codes A
-and/or multiple codes B that could be coupled interchangeably.  The
-CSlib enables a single interface to be defined between all A codes and
-all B codes.  By contrast if all the B codes are libraries, each A
-code would need to include code to call the various library
-interfaces, which are likely different. 
+<LI>You want to create a generic protocol (format and content of messages)
+that allows one kind of code A to couple to another kind of code B.
+There may be multiple codes A and/or multiple codes B that could be
+coupled interchangeably.  The CSlib enables a single protocol to be
+defined between all A codes and all B codes.  By contrast if all the B
+codes are libraries, each A code would need to include code to call
+the various library interfaces, which are likely different. 
 
-<LI>You want to run the two codes on different machines, possibly across
-the country.  The socket mode of messaging can do this. 
+<LI>You want to run the two codes on different machines in different
+geographic locations.  The socket mode of messaging can do
+this. 
 </OL>
 <P>To use the library, one of the apps acts as a "client", the other as a
 "server", as explained in <A HREF = "model.html">this section</A>.  Thus you need to
@@ -67,7 +69,7 @@ each.  Thus it is not designed to efficiently couple codes when each
 is running on 100s or 1000s of processors, and where they frequently
 exchange large amounts of data.  This requires higher bandwidth
 parallel data transfers, where many or all processors of each code
-exchange messages with each other simultaneously via MPI.
+exchange data with each other simultaneously via MPI.
 </P>
 <P>Solutions to that problem typically use more specialized libraries and
 require the two codes be linked together as one application.  Here are
@@ -88,7 +90,7 @@ Distributed Computing, 64, 266-276
 (ADIOS)</A> 
 </UL>
 <P>At some point we may extend the CSlib to include options for a more
-parallel form of code coupling, either wrapping these tools directly
-or using conceptual ideas they implement.
+parallel or high-bandwidth form of code coupling, either wrapping
+these tools directly or using conceptual ideas they implement.
 </P>
 </HTML>

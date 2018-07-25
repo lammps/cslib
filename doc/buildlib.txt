@@ -37,12 +37,13 @@ If you don't have the ZMQ library on your system, you can append
 "zmq=no" to any of the listed make commands.  The resulting library
 will not allow use of mode zmq for messaging via sockets.
 
-Note that you may need to build the CSlib multiple times.  For
+Note that you may wish to build the CSlib multiple times.  For
 example, if the client app is a serial program that does not use MPI,
 it will link to the CSlib with no MPI support, while if the server app
-runs in parallel, it will link to the CSlib with MPI support.  
+runs in parallel, it will link to the CSlib with MPI support.
 
-If the build is successful, these library files are created:
+If the build is successful, one or more of these library files are
+created:
 
 libcsmpi.so         # shared lib with MPI suppport
 libcsnompi.so       # shared lib with no MPI support

@@ -4,7 +4,13 @@ Run the test apps :h3
 
 After you have "built the CSlib"_buildlib.html and "built the test
 apps"_buildapps.html, you can run them by following the directions in
-"this section"_quick.html.  We explain some additional details here.
+the "quick tour"_quick.html, which explains the command-line arguments
+used by both the client and server apps.  Both the "quick
+tour"_quick.html and "running client/server apps"_quick.html sections
+explain the syntax for launching both apps together, either from two
+terminal windows or a single window, or on a parallel machine.
+
+We explain some additional details here.
 
 :line
 
@@ -48,9 +54,6 @@ Note that for mode = "mpi/two", each app must be launched by a mpirun
 command, even if they run on a single processor.  This is so that MPI
 can figure out how to connect both MPI processes together to exchange
 MPI messages between them.
-
-The "quick tour"_quick.html section explains the command-line
-arguments used by all the client and server apps that use the CSlib.
 
 :line
 

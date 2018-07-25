@@ -2,8 +2,8 @@
 
 Test programs :h3
 
-There are several pairs of test programs in the test dir.
-These use the CSlib:
+There are several pairs of test programs in the test dir.  These use
+the CSlib:
 
 client.cpp, server.cpp : serial client/server in C++
 client_c.cpp, server_c.cpp : serial c/s in C

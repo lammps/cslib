@@ -2,10 +2,20 @@
 
 Client/server model of communication :h3
 
-These are key points to understand about the client/server messaging
-model, as it is implemented in the CSlib.  The test apps, discussed in
-"this section"_buildtest.html, illustrate all these points, so they
-are useful to look at to see how to morph your app so it can run as a
+The "client/server model"_cswiki is a messaging paradigm, used
+ubiquitously by web-based applications, where one or more clients
+(e.g. your phone) communicate with a server (e.g. a website).  In the
+context of the CSlib, it can used to couple two scientific
+applications (apps) together where one app acts as the "client" and
+the other as the "server".  The client sends messages to the server
+requesting it perform specific computations and return the results.
+
+:link(cswiki,https://en.wikipedia.org/wiki/Client%E2%80%93server_model)
+
+These are key points to understand about the client/server model, as
+it is implemented in the CSlib.  The test apps, discussed in "this
+section"_buildtest.html, illustrate all these points, so they are
+useful to look at to see how to morph your app so it can run as a
 client and/or server.
 
 At run time, the client and server codes (apps) must use the same mode
@@ -28,10 +38,10 @@ client cannot send several messages in a row, then wait for a
 response.  Likewise the server cannot send several messages in a row
 as a response, then wait for a new request. :l
 
-When the client is done, it typically should tell the server there are
-no more requests by sending a final message.  The server should
-respond to the client.  The client should wait to receive that final
-message from the server. :l
+When the client is done, it should tell the server there are no more
+requests by sending a final message.  The server should respond to the
+client.  The client should wait to receive that final message from the
+server. :l
 
 To send a message, the client or server performs two operations.  The
 first is to call send() with a message ID and # of fields.  The second
@@ -80,9 +90,10 @@ re-uses its internal memory for every new send or receive call, for
 both per-field info and per-field data.  This means the app cannot
 expect the pointers to received data returned from the recv() and
 unpack() calls to remain valid, once it begins to call send(), pack(),
-pack_parallel() to send the next message.  The app MUST make its own
-copy of the recv() or unpack() data if persistence is required.  This
-is true even if the app simply wishes to in-place modify a vector of
-field data to return it to the other app.  To do this, the app should
-make a copy of the vector, modify the copy, then send the copy.  We
-may add this as an option in the CSlib in the future. :l,ole
+or pack_parallel() to send the next message.  The app MUST make its
+own copy of the recv() or unpack() data if persistence is required.
+This is true even if the app simply wishes to in-place modify a vector
+of field data to return it to the other app.  To do this, the app
+should make a copy of the vector, modify the copy, then send the copy.
+We may add alernate memory usage options to the CSlib in the
+future. :l,ole

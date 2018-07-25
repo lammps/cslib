@@ -1,6 +1,6 @@
 "CSlib documentation"_Manual.html
 
-Use cases for the library :h3
+Use cases for the CSlib :h3
 
 Here we describe different ways of using the CSlib in either serial or
 parallel.  Note that a pair of client and server apps can use the
@@ -62,5 +62,5 @@ MPI support for parallel.  "This section"_#buildlib explains how to
 build in both ways, which will produce libraries with different names,
 so an invididual app can link against either.
 
-NOTE: Think about eventually building with MPI support but allowing
-serial use (no MPI communicator).
+TODO: We should think about eventually building with MPI support but
+allowing serial use (no MPI communicator).

@@ -829,7 +829,7 @@ into a multidimensional array (without a copy).
 <P>For Python, when unpacking to ctypes (dtype=3), a 1d ctypes vector is
 returned by unpack() and unpack_parallel().
 </P>
-<P>NOTE: should show how to convert (copy?) ctypes vec to ctypes array
+<P>TODO: should show how to convert (copy?) ctypes vec to ctypes array
 </P>
 <HR>
 
@@ -907,7 +907,7 @@ But it could also use unpack(), as follows in C++:
 </P>
 <P>int id = 1;
 int *vec = (int *) cs->unpack(id);   // length of vec will be 1
-value = vec<B>0</B>;
+value = vec[0];
 </P>
 <P>Or a parallel app could even use unpack_parallel() as follows,
 assuming only one proc sets nlocal = 1 and ids.
@@ -919,11 +919,11 @@ int *ids = NULL;
 int *rvec = NULL;
 if (nlocal) {
   ids = (int *) malloc(nlocal*sizeof(int));
-  ids<B>0</B> = 1;
+  ids[0] = 1;
   rvec = (int *) malloc(nlocal*sizeof(double));
 }
 cs->unpack_parallel(id,nlocal,ids,nper,rvec);
-value = rvec<B>0</B>; 
+value = rvec[0]; 
 </PRE>
 <P>Similarly, one app can use pack() to send a field, and the other app
 could use unpack_parallel() to receive the field.  Or vice versa.

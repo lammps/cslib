@@ -36,7 +36,7 @@ different languages.
 <PRE>CSlib(int csflag, char *mode, char *txt, MPI_Comm *pworld);
 ~CSlib(); 
 </PRE>
-<P><A HREF = "send.html">Send a message</A>:
+<P><A HREF = "exchange.html">Send a message</A>:
 </P>
 <PRE>void send(int msgID, int nfield);
 void pack_int(int id, int value);
@@ -47,7 +47,7 @@ void pack_string(int id, char *string);
 void pack(int id, int ftype, int flen, void *data);
 void pack_parallel(int id, int ftype, int nlocal, int *ids, int nper, void *data); 
 </PRE>
-<P><A HREF = "receive.html">Receive a message</A>:
+<P><A HREF = "exchange.html">Receive a message</A>:
 </P>
 <PRE>int recv(int &nfield, int *&fieldID, int *&fieldtype, int *&fieldlen);
 int unpack_int(int id);
