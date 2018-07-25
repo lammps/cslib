@@ -5,36 +5,27 @@
 
 CSlib Papers :h3
 
-If you use the CSlib library in one of your publications, please cite
-the following paper and also list the URL of the "CSlib website"_cws,
-namely http://cslib.sandia.gov.
+If you use the CSlib library in one of your publications, please
+refernence the URL of the "CSlib website"_cws, namely
+http://cslib.sandia.gov.
 
-This paper describes the MR-MPI library and several MapReduce graph
-algorithms for informatics problems:
-
-[MapReduce in MPI for Large-Scale Graph Algorithms], S. J. Plimpton
-and K. D. Devine, Parallel Computing, 37, 610-632 (2011).
-("abstract"_abstracts/pc11.html) ("preprint"_pdf/pc11.pdf)
+At some point we may write a paper about use of the CSlib,
+in which case we will post a citation here.
 
 :line
 
-The author of the MR-MPI library are "Steve Plimpton"_sjp (sjplimp at
-sandia.gov) and "Karen Devine"_kdd (kddevin at sandia.gov).
+The author of the CSlib is "Steve Plimpton"_sjp (sjplimp at
+sandia.gov).
 
 :link(sjp,http://www.sandia.gov/~sjplimp)
-:link(kdd,http://www.cs.sandia.gov/~kddevin)
 
-You can send us email regarding any of these issues:
+You can send me an email regarding any of these issues:
 
-If you use MR-MPI for something interesting, we'd like to hear about
+If you use the CSlib for something interesting, I'd like to hear about
 it. :ulb,l
 
-If you write a paper using the MR-MPI library, we can post a citation
-to it on this page. :l
+If you write a paper using the CSlib, I can post a citation to it on
+this page. :l
 
-If you write a MapReduce program which calls the library, that others
-would be interested in, you can send it and we'll include it in the
-distribution. :l
-
-If you enhance the library itself or have ideas for doing so, we can
-discuss including the improvements in future releases. :l,ule
+If you enhance the CSlib or have ideas for doing so, we can discuss
+including the improvements in future releases. :l,ule
