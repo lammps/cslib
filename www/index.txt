@@ -20,7 +20,7 @@ CSlib, a library for coupling scientific applications via a client/server model 
 
 {"My life is my message.} - Mahatma Gandhi :c
 
-{"If we want a love message to be heard, it has got to be sent out.} -
+{"If you want a love message to be heard, it has got to be sent out.} -
 Mother Teresa :c
 
 :line
