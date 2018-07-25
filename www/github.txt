@@ -1,0 +1,10 @@
+"CSlib website"_cws :c
+:link(cws,index.html)
+
+:line
+
+GitHub site for CSlib :h3
+
+The CSlib should be posted to GitHub in ~Aug 2018.  At that point this
+page will disappear and the GitHub link on the "CSLib web page"_cws
+will take you to GitHub.
