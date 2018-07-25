@@ -27,7 +27,8 @@ Mother Teresa :c
 
 This is the home page for the client/server messaging library (CSlib).
 It is a lightweight implementation of the client/server model suitable
-for coupling scientific applications runnning in serial or parallel.
+for coupling two scientific applications runnning in serial or
+parallel.
 
 "Documentation"_doc/Manual.html,
 "Download"_download,
@@ -43,8 +44,8 @@ ubiquitously by web-based applications, where one or more clients
 (e.g. your phone) communicate with a server (e.g. a website).  In the
 context of the CSlib, it can used to couple two scientific
 applications (apps) together where one app acts as the "client" and
-the other as the "server".  The client asks the server to perform
-specific computations and return the results.
+the other as the "server".  The client sends messages to the server
+requesting it perform specific computations and return the results.
 
 Advantages of this mode of coupling, supported by the CSlib, are as
 follows:
@@ -114,8 +115,8 @@ CSlib came from DOE's "Office of Advanced Scientific Computing
 Program"_oascr (OASCR) under the auspices of its "Exascale Computing
 Program"_ecp (ECP).
 
-The author of this library is "Steve Plimpton"_sjp, who can be
-contacted at sjplimp at sandia.gov.
+The author of the CSlib is "Steve Plimpton"_sjp, who can be contacted
+at sjplimp at sandia.gov.
 
 The CSlib WWW site is hosted by Sandia, which has this "Privacy and
 Security statement"_security.

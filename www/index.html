@@ -28,7 +28,8 @@ Mother Teresa
 
 <P>This is the home page for the client/server messaging library (CSlib).
 It is a lightweight implementation of the client/server model suitable
-for coupling scientific applications runnning in serial or parallel.
+for coupling two scientific applications runnning in serial or
+parallel.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD ><A HREF = "doc/Manual.html">Documentation</A></TD><TD ><A HREF = "http://www.sandia.gov/~sjplimp/download.html">Download</A></TD><TD ><A HREF = "papers">Publications</A></TD><TD ><A HREF = "open_source.html">Open source</A></TD></TR>
@@ -39,9 +40,9 @@ for coupling scientific applications runnning in serial or parallel.
 ubiquitously by web-based applications, where one or more clients
 (e.g. your phone) communicate with a server (e.g. a website).  In the
 context of the CSlib, it can used to couple two scientific
-applications (apps) together where one app acts as the "client",
-another as the "server", and the client asks the server to perform
-specific computations and return the results.
+applications (apps) together where one app acts as the "client" and
+the other as the "server".  The client sends messages to the server
+requesting it perform specific computations and return the results.
 </P>
 <P>Advantages of this mode of coupling, supported by the CSlib, are as
 follows:
@@ -63,7 +64,8 @@ apps can run on geographically distinct machines.
 <LI>Modifying an app to work as a client or server via the CSlib can be
 done in one of two ways.  Calls to the CSlib can be added to the app,
 or a wrapper program (e.g. a Python script) can be written which calls
-the CSlib and creates input for and parses output from the app. 
+the CSlib, creates input for the app, invokes it, and parses its
+output. 
 
 <LI>Multiple instances of the CSlib can be used to couple more than 2 apps
 to each other in different patterns. 
@@ -71,10 +73,10 @@ to each other in different patterns.
 <LI>A communication prototcol can be defined for a particular style of
 coupling.  In principle this allows any client code of type A to be
 coupled to any server code of type B, so long as both codes implement
-the AB protocol via the CSlib.  An example is given below for <I>ab
+the AB protocol via the CSlib.  An example is explained below for <I>ab
 initio</I> molecular dynamics. 
 </UL>
-<P>A limitation of the CSlib, is that it is meant for loose coupling of
+<P>A limitation of the CSlib, is that it's meant for loose coupling of
 two apps when the cost of the data exchange is not
 performance-critical.  It is not designed for tight-coupling scenarios
 where large volumes of data need to be exchanged rapidly between large
@@ -110,8 +112,8 @@ CSlib came from DOE's <A HREF = "oascr">Office of Advanced Scientific Computing
 Program</A> (OASCR) under the auspices of its <A HREF = "ecp">Exascale Computing
 Program</A> (ECP).
 </P>
-<P>The author of this library is <A HREF = "http://www.sandia.gov/~sjplimp">Steve Plimpton</A>, who can be
-contacted at sjplimp at sandia.gov.
+<P>The author of the CSlib is <A HREF = "http://www.sandia.gov/~sjplimp">Steve Plimpton</A>, who can be contacted
+at sjplimp at sandia.gov.
 </P>
 <P>The CSlib WWW site is hosted by Sandia, which has this <A HREF = "http://www.sandia.gov/general/privacy-security/index.html">Privacy and
 Security statement</A>.

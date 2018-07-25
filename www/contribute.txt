@@ -1,4 +1,4 @@
-"CSlib website"_mws :c
+"CSlib website"_cws :c
 :link(cws,index.html)
 
 :line

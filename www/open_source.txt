@@ -1,5 +1,5 @@
-"MapReduce-MPI WWW Site"_mws :c
-:link(mws,index.html)
+"CSlib website"_cws :c
+:link(cws,index.html)
 
 :line
 
