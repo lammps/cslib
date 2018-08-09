@@ -34,7 +34,7 @@ parallel.
 "Download"_download,
 "Publications"_papers.html,
 "Open source"_open_source.html, 
-.,
+,
 "GitHub site"_github.html,
 "Latest features & bug fixes"_bug.html,
 "Contribute"_contribute.html :tb(c=4,ea=c,a=c)
