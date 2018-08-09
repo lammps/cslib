@@ -18,10 +18,10 @@ command from the test dir:
 % sh Run_mixed.sh       # for mixed apps (language, serial/parallel, etc) 
 </PRE>
 <P>These shell scripts build and run in all languages (C++, C, Fortran,
-Python), and for serial and parallel (via MPI).  This includes socket
-mode via the ZeroMQ (ZMQ) library.  So if support for some of the
-options is not available on your system, apps may not build or run.
-In which case you can try the 3-step process below.
+Python), and for serial and parallel (via MPI).  This includes a
+socket mode via the ZeroMQ (ZMQ) library.  So if support for some of
+the options is not available on your system, apps may not build or
+run.  In which case you can try the 3-step process below.
 </P>
 <P>You can examine the source code of any of the apps in the test dir to
 see the logic and syntax for using the CSlib from your application.
@@ -69,8 +69,8 @@ Niter = number of exchanges
 dtype = Python data type: 1 for list, 2 for Numpy, 3 for ctypes 
 </PRE>
 <P>IMPORTANT NOTE: You must specify the same mode and Nlen for both apps.
-For mode = mpi/one, launch both apps via one mpirun command, not two
-commands in two windows, for example:
+For mode = mpi/one, launch both apps via a single mpirun command, not
+two commands in two windows, for example:
 </P>
 <PRE>% mpirun -np 2 client_parallel mode Nlen Niter : -np 4 server_parallel mode Nlen 
 </PRE>
@@ -109,7 +109,7 @@ See <A HREF = "python.html">this section</A> for details on both these topics.
 </PRE>
 <P>Mix and match langauges and serial vs parallel.  A serial and parallel
 app can only use the CSlib together for mode = file or zmq.  If mode =
-mpi/two is used, both apps must be launched with mpirun, even if one
+mpi/two is used, both apps MUST be launched with mpirun, even if one
 or both of them only runs on a single processor.
 </P>
 <PRE>% client mode Nlen Niter
