@@ -137,5 +137,4 @@ Security statement"_security.
 
 Recent CSlib News :c,h4
 
-<IMG SRC = "new.gif"> (8/18) Initial open-source release of the
-CSlib. :ul
+<IMG SRC = "new.gif"> (8/18) Initial open-source release of the CSlib. :ul
