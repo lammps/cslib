@@ -53,13 +53,23 @@ recv() until the other app performs a matching send().
 
 :line
 
-Two desktop machines:
+Two distinct machines:
 
-TODO: Need to flesh out this section with examples.  Only file and zmq mode
-are relevant.
+This could be two desktop machines on the same network, or two
+geographically separated machines.
 
-talk about port IDs for zmq mode and geographically distinct machines - give example port IDs?
-file mode requires a common file system (may not be possible when geographically distinct) :ul
+Only the CSlib "file" and "zmq" messaging modes are relevant in this
+scenario, since you cannot run a single instance of MPI across both
+machines.
+
+Use of the "file" mode requires a common file system which both
+machines can write to and where they can both access files written by
+the other machine.
+
+Use of the "zmq" mode, one machine is the server, the other is the
+client.  The client simply needs to know the IP address of the server
+and the client and server need to agree on a port ID for sending and
+receiving messages.
 
 :line
 
@@ -72,10 +82,11 @@ a "Desktop machine" should work, so long as a "&" character is used at
 the end of the first command (launching the first app), so that both
 apps can effectively be launched at the same time.
 
-TODO: need to give examples of OpenMPI syntax for task
-placement
-TODO: talk about port IDs for zmq mode, how to ID them on a cluster
-TODO: talk about file mode requiring a common file system :ul
+TODO: Need to also discuss these issues:
+
+Give examples of OpenMPI syntax for task placement
+Port IDs and IP addresses for zmq mode, how to ID them on a cluster
+File mode requires a common front-end or parallel file system :ul
 
 Note that on a cluster or a supercomputer (or even on a single node,
 i.e. a desktop), the mpirun command gives you control over which nodes

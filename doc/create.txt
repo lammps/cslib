@@ -162,11 +162,11 @@ Note that the client and server can run on different machines,
 separated geographically, so long as the server accepts incoming TCP
 requests on the specified port.
 
-TODO: need to answer these Qs
+TODO: Still need to answer these Qs
 
-what values can port ID have?
-need port examples for a big cluster, how to find node IP addresses
-can 2 servers run on same machine with different ports? :ul
+What values can port ID have?
+Need socket examples for a big cluster, how to find node IP addresses
+Can 2 servers run on same machine with different ports? :ul
 
 If the CSlib is instantiated multiple times, (see "this
 section"_usage.html for use cases), the port ID (5555 in this example)

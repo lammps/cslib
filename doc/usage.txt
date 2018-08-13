@@ -62,5 +62,5 @@ MPI support for parallel.  "This section"_#buildlib explains how to
 build in both ways, which will produce libraries with different names,
 so an invididual app can link against either.
 
-TODO: We could eventually build with MPI support but allowing serial
-use (no MPI communicator).
+TODO: Could enable building with MPI support but allowing serial use
+(no MPI communicator).

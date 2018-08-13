@@ -6,7 +6,7 @@ The CSlib stores a running count of how many messages the app has sent
 and received since the library was instantiated.  These two values can
 be queried by the app whenever desired.
 
-TODO: maybe a cummulative count of message sizes as bigint should be added
+TODO: A cummulative count of message sizes as a bigint could be added
 
 API:
 

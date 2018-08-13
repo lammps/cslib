@@ -820,7 +820,8 @@ into a multidimensional array (without a copy).
 For Python, when unpacking to ctypes (dtype=3), a 1d ctypes vector is
 returned by unpack() and unpack_parallel().
 
-TODO: should show how to convert (copy?) ctypes vec to ctypes array
+TODO: Should give example of how to convert (copy?) ctypes vec to
+ctypes array.
 
 :line
 :line
