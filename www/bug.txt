@@ -33,7 +33,7 @@ describe the version you have. :ule,l
 :line
 :line
 
-[8 Aug 2018]
+[13 Aug 2018]
 
-Initial public release of the CSlib.  2269 lines of code in src dir.
-This version supercedes earlier distributed beta versions.
+Initial public release of the CSlib.  This version supercedes earlier
+distributed beta versions.
