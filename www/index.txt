@@ -14,7 +14,7 @@
     <meta name="Author" content="Steve Plimpton" />
 </HEAD>
 
-CSlib, a library for coupling scientific applications via a client/server model :c,h3
+CSlib, a client/server messaging library for coupling scientific applications :c,h3
 
 {"The medium is the message.} -- Marshall McLuhan :c
 
