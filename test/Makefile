@@ -53,9 +53,9 @@ serial_c:
 serial_f90:
 	$(F90) $(CCFLAGS) -c cslib_wrap.f90
 	$(F90) $(CCFLAGS) -c client_f90.f90
-	$(F90) client_f90.o cslib_wrap.o $(LINKFLAGS) $(LIBNOMPI) -o client_f90
+	$(F90) client_f90.o cslib_wrap.o $(LINKFLAGS) $(LIBNOMPI) -lstdc++ -o client_f90
 	$(F90) $(CCFLAGS) -c server_f90.f90
-	$(F90) server_f90.o cslib_wrap.o $(LINKFLAGS) $(LIBNOMPI) -o server_f90
+	$(F90) server_f90.o cslib_wrap.o $(LINKFLAGS) $(LIBNOMPI) -lstdc++ -o server_f90
 
 parallel_c++:
 	$(MPICC) $(CCFLAGS) -c client_parallel.cpp
@@ -73,10 +73,10 @@ parallel_f90:
 	$(F90) $(CCFLAGS) -c cslib_wrap.f90
 	$(MPIF90) $(CCFLAGS) -c client_parallel_f90.f90
 	$(MPIF90) client_parallel_f90.o cslib_wrap.o \
-		$(LINKFLAGS) $(LIB) -o client_parallel_f90
+		$(LINKFLAGS) $(LIB) -lstdc++ -o client_parallel_f90
 	$(MPIF90) $(CCFLAGS) -c server_parallel_f90.f90
 	$(MPIF90) server_parallel_f90.o cslib_wrap.o \
-		$(LINKFLAGS) $(LIB) -o server_parallel_f90
+		$(LINKFLAGS) $(LIB) -lstdc++ -o server_parallel_f90
 
 simple_zmq:
 	$(CC) $(CCFLAGS) simple_client_zmq.cpp -lzmq -o simple_client_zmq
