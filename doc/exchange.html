@@ -361,9 +361,9 @@ void *unpack(int id);
 <P><B>C++ sending app:</B>
 </P>
 <PRE>int id = 1;
-int ftype = 4;           // 1 for int32, 2 for int64 = 2, 3 for float32
+int ftype = 4;           // 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 int flen = 100;
-double *sdata = (double *) malloc(flen*sizeof(double));  // double -> int for int32, int64_t for int64, float for float32 
+double *sdata = (double *) malloc(flen*sizeof(double));  // int for int32, int64_t for int64, float for float32, double for float64 
 </PRE>
 <PRE>cs->pack(id,ftype,flen,sdata); 
 </PRE>
@@ -371,15 +371,15 @@ double *sdata = (double *) malloc(flen*sizeof(double));  // double -> int for in
 </P>
 <PRE>int id = fieldID[0] 
 </PRE>
-<PRE>double *rdata = (double *) cs->unpack(id);     // double -> int for int32, int64_t for int64, float for float32 
+<PRE>double *rdata = (double *) cs->unpack(id);     // int for int32, int64_t for int64, float for float32, double for float64 
 </PRE>
 <P><B>C sending app:</B>
 </P>
 <PRE>void *cs;          // ptr returned by cslib_open()
 int id = 1;
-int ftype = 4;         // 1 for int32, 2 for int64 = 2, 3 for float32
+int ftype = 4;         // 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 int flen = 100;
-double *sdata = (double *) malloc(flen*sizeof(double));     // double -> int for int32, int64_t for int64, float for float32 
+double *sdata = (double *) malloc(flen*sizeof(double));     // int for int32, int64_t for int64, float for float32, double for float64 
 </PRE>
 <PRE>cslib_pack(cs,id,ftype,flen,sdata); 
 </PRE>
@@ -388,15 +388,15 @@ double *sdata = (double *) malloc(flen*sizeof(double));     // double -> int for
 <PRE>void *cs;
 int id = fieldID[0]; 
 </PRE>
-<PRE>double *rdata = (double *) cslib_unpack(cs,id);     // double -> int for int32, int64_t for int64, float for float32 
+<PRE>double *rdata = (double *) cslib_unpack(cs,id);     // int for int32, int64_t for int64, float for float32, double for float64 
 </PRE>
 <P><B>Fortran sending app:</B>
 </P>
 <PRE>type(c_ptr) :: cs      ! ptr returned by cslib_open()
 integer(4) :: id = 1
-integer(4) :: ftype = 4         ! 1 for int32, 2 for int64 = 2, 3 for float32
+integer(4) :: ftype = 4         ! 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 integer :: flen = 100
-real(8), allocatable, target :: sdata(:)     ! real(8) -> integer(4) for int32, integer(8) for int64, real(4) for float32
+real(8), allocatable, target :: sdata(:)     ! integer(4) for int32, integer(8) for int64, real(4) for float32, real(8) for float64
 allocate(sdata(flen)) 
 </PRE>
 <PRE>call cslib_pack(cs,id,ftype,flen,c_loc(sdata)) 
@@ -407,7 +407,7 @@ allocate(sdata(flen))
 integer(4) :: id = fieldID(1)
 integer(4) :: flen = fieldlen(1)
 type(c_ptr) :: ptr
-real(c_double), pointer :: rdouble(:) => null()      ! real(c_double) -> integer(c_int) for int32, integer(c_int64_t) for int64, real(c_float) for float32 
+real(c_double), pointer :: rdouble(:) => null()      ! integer(c_int) for int32, integer(c_int64_t) for int64, real(c_float) for float32, real(c_double) for float64 
 </PRE>
 <PRE>ptr = cslib_unpack(cs,id)
 call c_f_pointer(ptr,rdata,[flen]) 
@@ -415,16 +415,16 @@ call c_f_pointer(ptr,rdata,[flen])
 <P><B>Python sending app:</B>
 </P>
 <PRE>id = 3
-ftype = 4      # 1 for int32, 2 for int64 = 2, 3 for float32
+ftype = 4      # 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 flen = 100
 dtype = 1,2,3   # to send Python list, Numpy array, ctypes vector 
 </PRE>
 <PRE>if dtype == 1:                      # Python list
  sdata = flen*[0]
 elif dtype == 2:                    # Numpy 1d array
- sdata = np.zeros(flen,np.float)    # float -> intc for int32, int64 for int64, float32 for float32
+ sdata = np.zeros(flen,np.float)    # float -> intc for int32, int64 for int64, float32 for float32, float for float64
 elif dtype == 3:                    # ctypes vector
- sdata = (ctypes.c_double * flen)()   # c_double -> c_int for int32, c_longlong for int64, c_float for float32 
+ sdata = (ctypes.c_double * flen)()   # c_int for int32, c_longlong for int64, c_float for float32, c_double for float64 
 </PRE>
 <PRE>cs.pack(id,ftype,flen,sdata)    # cs = object created by CS.open() 
 </PRE>
@@ -513,11 +513,11 @@ void unpack_parallel(int id, int nlocal, int *ids, int nper, void *data);
 <P><B>C++ sending app:</B>
 </P>
 <PRE>int id = 1;
-int ftype = 4;           // 1 for int32, 2 for int64 = 2, 3 for float32
+int ftype = 4;           // 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 int nlocal = 100;        // could be different for each proc
 int nper = 1;            // for a vector (see multidimensional arrays below)
 int *ids = (int *) malloc(nlocal*sizeof(int));  // this proc's datum IDs
-double *sdata = (double *) malloc(nlocal*sizeof(double));    // double -> int for int32, int64_t for int64, float for float32 
+double *sdata = (double *) malloc(nlocal*sizeof(double));    // int for int32, int64_t for int64, float for float32, double for float64 
 </PRE>
 <PRE>cs->pack_parallel(id,ftype,nlocal,ids,nper,sdata); 
 </PRE>
@@ -527,7 +527,7 @@ double *sdata = (double *) malloc(nlocal*sizeof(double));    // double -> int fo
 int nlocal = 200;
 int nper = 1;
 int *ids = (int *) malloc(nlocal*sizeof(int));
-double *rdata = (float *) malloc(nlocal*sizeof(double));    // double -> int for int32, int64_t for int64, float for float32 
+double *rdata = (float *) malloc(nlocal*sizeof(double));    // int for int32, int64_t for int64, float for float32, double for float64 
 </PRE>
 <PRE>cs->unpack_parallel(id,nlocal,ids,nper,rdata); 
 </PRE>
@@ -535,11 +535,11 @@ double *rdata = (float *) malloc(nlocal*sizeof(double));    // double -> int for
 </P>
 <PRE>void *cs;        // ptr returned by cslib_open()
 int id = 1;
-int ftype = 4;    // 1 for int32, 2 for int64 = 2, 3 for float32
+int ftype = 4;    // 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 int nlocal = 100;
 int nper = 1;
 int *ids = (int *) malloc(nlocal*sizeof(int));
-double *sdata = (double *) malloc(nlocal*sizeof(double));     // double -> int for int32, int64_t for int64, float for float32 
+double *sdata = (double *) malloc(nlocal*sizeof(double));     // int for int32, int64_t for int64, float for float32, double for float64 
 </PRE>
 <PRE>cs->pack_parallel(id,ftype,nlocal,ids,nper,sdata); 
 </PRE>
@@ -550,7 +550,7 @@ int id = fieldID[0];
 int nlocal = 200;
 int nper = 1;
 int *ids = (int *) malloc(nlocal*sizeof(int));
-double *rdata = (float *) malloc(nlocal*sizeof(double));     // double -> int for int32, int64_t for int64, float for float32 
+double *rdata = (float *) malloc(nlocal*sizeof(double));     // int for int32, int64_t for int64, float for float32, double for float64 
 </PRE>
 <PRE>cslib_unpack_parallel(cs,id,nlocal,ids,nper,rdata); 
 </PRE>
@@ -558,11 +558,11 @@ double *rdata = (float *) malloc(nlocal*sizeof(double));     // double -> int fo
 </P>
 <PRE>type(c_ptr) :: cs      ! ptr returned by cslib_open()
 integer(4) :: id = 1
-integer(4) :: ftype = 4      ! 1 for int32, 2 for int64 = 2, 3 for float32
+integer(4) :: ftype = 4      ! 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 integer :: nlocal = 100
 integer :: nper = 1
 integer(4), allocatable, target :: ids(:)
-real(8), allocatable, target :: sdata(:)      ! real(8) -> integer(4) for int32, integer(8) for int64, real(4) for float32
+real(8), allocatable, target :: sdata(:)      ! integer(4) for int32, integer(8) for int64, real(4) for float32, real(8) for float64
 allocate(ids(nlocal))
 allocate(sdata(nlocal)) 
 </PRE>
@@ -575,7 +575,7 @@ integer(4) :: id = fieldID(1)
 integer :: nlocal = 200
 integer :: nper = 1
 integer(4), allocatable, target :: ids(:)
-real(8), allocatable, target :: rdata(:)     ! real(8) -> integer(4) for int32, integer(8) for int64, real(4) for float32
+real(8), allocatable, target :: rdata(:)     ! integer(4) for int32, integer(8) for int64, real(4) for float32, real(8) for float64
 allocate(ids(nlocal))
 allocate(rdata(nlocal)) 
 </PRE>
@@ -584,7 +584,7 @@ allocate(rdata(nlocal))
 <P><B>Python sending app:</B>
 </P>
 <PRE>id = 1
-ftype = 4         # 1 for int32, 2 for int64 = 2, 3 for float32
+ftype = 4         # 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 nlocal = 100
 nper = 1
 dtype = 1,2,3   # to send Python list, Numpy array, ctypes vector 
@@ -594,9 +594,9 @@ dtype = 1,2,3   # to send Python list, Numpy array, ctypes vector
 <PRE>if dtype == 1:                      # Python list
  sdata = nlocal*[0]
 elif dtype == 2:                    # Numpy 1d array
- sdata = np.zeros(nlocal,np.float)   # float -> intc for int32, int64 for int64, float32 for float32
+ sdata = np.zeros(nlocal,np.float)  # np.intc for int32, np.int64 for int64, np.float32 for float32, np.float for float64
 elif dtype == 3:                    # ctypes vector
- sdata = (ctypes.c_double * nlocal)()    # c_double -> c_int for int32, c_longlong for int64, c_float for float32 
+ sdata = (ctypes.c_double * nlocal)()    # c_int for int32, c_longlong for int64, c_float for float32, c_double for float64 
 </PRE>
 <PRE>cs.pack_parallel(id,ftype,nlocal,ids,nper,sdata) 
 </PRE>
@@ -679,12 +679,12 @@ void unpack_parallel(int id, int nlocal, int *ids, int nper, void *data);
 <P><B>C++ sending app:</B>
 </P>
 <PRE>int id = 1;
-int ftype = 4;       // 1 for int32, 2 for int64 = 2, 3 for float32
+int ftype = 4;       // 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 int flen = 1000;
 int nlocal = 100;
 int nper = 3;
 int *ids = (int *) malloc(nlocal*sizeof(int));
-double **sarray = (double **) malloc2d(flen,nper); // double -> int for int32, int64_t for int64, float for float32
+double **sarray = (double **) malloc2d(flen,nper); // int for int32, int64_t for int64, float for float32, double for float64
 double **sarraylocal = (double **) malloc2d(nlocal,nper); 
 </PRE>
 <P>cs->pack(id,ftype,nper*flen,&sarray[0][0]);   // note nper*flen
@@ -697,10 +697,10 @@ int nlocal = 200;
 int nper = 3;
 int flen = fieldlen[0] / nper;    // fieldlen = nper*flen
 int *ids = (int *) malloc(nlocal*sizeof(int));
-double **rarray = (double **) malloc2d(flen,nper);  // double -> int for int32, int64_t for int64, float for float32
+double **rarray = (double **) malloc2d(flen,nper);  // int for int32, int64_t for int64, float for float32, double for float64
 double **rarraylocal = (double **) malloc2d(nlocal,nper); 
 </PRE>
-<PRE>double *rvec = (double *) cs->unpack(id);  // double -> int for int32, int64_t for int64, float for float32
+<PRE>double *rvec = (double *) cs->unpack(id);  // int for int32, int64_t for int64, float for float32, double for float64
 memcpy(&rarray[0][0],rvec,nper*flen*sizeof(double));  // copy into 2d array if desired
 cs->unpack_parallel(id,nlocal,ids,nper,&rarraylocal[0][0]); 
 </PRE>
@@ -708,12 +708,12 @@ cs->unpack_parallel(id,nlocal,ids,nper,&rarraylocal[0][0]);
 </P>
 <PRE>void *cs;        // ptr returned by cslib_open()
 int id = 1;
-int ftype = 4;      // 1 for int32, 2 for int64 = 2, 3 for float32
+int ftype = 4;      // 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 int flen = 1000;
 int nlocal = 100;
 int nper = 3;
 int *ids = (int *) malloc(nlocal*sizeof(int));
-double **sarray = (double **) malloc2d(flen,nper); // double -> int for int32, int64_t for int64, float for float32
+double **sarray = (double **) malloc2d(flen,nper); // int for int32, int64_t for int64, float for float32, double for float64
 double **sarraylocal = (double **) malloc2d(nlocal,nper); 
 </PRE>
 <P>cslib_pack(cs,id,ftype,nper*flen,&sarray[0][0]);
@@ -727,10 +727,10 @@ int nlocal = 200;
 int nper = 3;
 int flen = fieldlen[5] / nper;
 int *ids = (int *) malloc(nlocal*sizeof(int));
-double **rarray = (double **) malloc2d(flen,3);  // double -> int for int32, int64_t for int64, float for float32
+double **rarray = (double **) malloc2d(flen,3);  // int for int32, int64_t for int64, float for float32, double for float64
 double **rarraylocal = (double **) malloc2d(nlocal,3); 
 </PRE>
-<PRE>double *rvec = (double *) cslib_unpack(cs,id);  // double -> int for int32, int64_t for int64, float for float32
+<PRE>double *rvec = (double *) cslib_unpack(cs,id);  // int for int32, int64_t for int64, float for float32, double for float64
 memcpy(&rarray[0][0],rvec,nper*flen*sizeof(double));
 cslib_unpack_parallel(cs,id,nlocal,ids,nper,&rarraylocal[0][0]); 
 </PRE>
@@ -738,12 +738,12 @@ cslib_unpack_parallel(cs,id,nlocal,ids,nper,&rarraylocal[0][0]);
 </P>
 <PRE>type(c_ptr) :: cs      ! ptr returned by cslib_open()
 integer(4) :: id = 1
-integer(4) :: ftype = 4      ! 1 for int32, 2 for int64 = 2, 3 for float32
+integer(4) :: ftype = 4      ! 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 integer(4) :: flen = 1000
 integer :: nlocal = 100
 integer :: nper = 3
 integer(4), allocatable, target :: ids(:)
-real(8), allocatable, target :: sarray(:,:),sarraylocal(:,:)  ! real(8) -> integer(4) for int32, integer(8) for int64, real(4) for float32
+real(8), allocatable, target :: sarray(:,:),sarraylocal(:,:)  ! integer(4) for int32, integer(8) for int64, real(4) for float32, real(8) for float64
 allocate(ids(nlocal))
 allocate(sarray(nper,flen))   ! note 3xN, not Nx3
 allocate(sarraylocal(nper,nlocal)) 
@@ -760,8 +760,8 @@ integer :: nper = 3
 integer(4) :: flen = fieldlen(1) / nper
 integer(4), allocatable, target :: ids(:)
 type(c_ptr) :: ptr
-real(c_double), pointer :: rarray(:) => null()  ! real(c_double) -> integer(c_int) for int32, integer(c_int64_t) for int64, real(c_float) for float32
-real(8), allocatable, target :: rarraylocal(:,:)   ! real(8) -> integer(4) for int32, integer(8) for int64, real(4) for float32
+real(c_double), pointer :: rarray(:) => null()  ! integer(c_int) for int32, integer(c_int64_t) for int64, real(c_float) for float32, real(c_double) for float64
+real(8), allocatable, target :: rarraylocal(:,:)   ! integer(4) for int32, integer(8) for int64, real(4) for float32, real(8) for float64
 allocate(ids(nlocal))
 allocate(rarraylocal(nper,nlocal)) 
 </PRE>
@@ -772,7 +772,7 @@ call cslib_unpack_parallel(cs,id,nlocal,c_loc(ids),nper,c_loc(rarraylocal))
 <P><B>Python sending app:</B>
 </P>
 <PRE>id = 1
-ftype = 4             # 1 for int32, 2 for int64 = 2, 3 for float32
+ftype = 4             # 1 for int32, 2 for int64 = 2, 3 for float32, 4 for float64
 flen = 1000
 nlocal = 100
 nper = 1
@@ -784,10 +784,10 @@ dtype = 1,2,3   # to send Python list, Numpy array, ctypes vector
  sarray = [nper*[0] for i in range(flen)]
  sarraylocal = [nper*[0] for i in range(nlocal)]
 elif dtype == 2:                    # Numpy 2d arrays
- sarray = np.zeros((flen,nper),np.float)   # float -> intc for int32, int64 for int64, float32 for float32
+ sarray = np.zeros((flen,nper),np.float)   # intc for int32, int64 for int64, float32 for float32, float for float64
  sarraylocal = np.zeros((nlocal,nper),np.float)
 elif dtype == 3:                    # ctypes 2d arrays
- sarray = ((ctypes.c_double * nper) * flen)()  # c_double -> c_int for int32, c_longlong for int64, c_float for float32
+ sarray = ((ctypes.c_double * nper) * flen)()  # c_int for int32, c_longlong for int64, c_float for float32, c_double for float64
  sarraylocal = ((ctypes.c_double * nper) * nlocal)() 
 </PRE>
 <PRE>cs.pack(id,ftype,flen,sarray)
