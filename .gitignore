@@ -1,0 +1,8 @@
+# these dirs and files are not tracked by Git
+
+test/client_f90
+test/client_parallel_f90
+test/server_f90
+test/server_parallel_f90
+
+www/patches/
