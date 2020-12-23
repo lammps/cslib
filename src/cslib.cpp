@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    CSlib - Client/server library for code coupling
-   http://cslib.sandia.gov, Sandia National Laboratories
+   https://cslib.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright 2018 National Technology & Engineering Solutions of
@@ -12,7 +12,11 @@
    See the README file in the top-level CSlib directory.
 ------------------------------------------------------------------------- */
 
+#ifdef MPI_YES
 #include <mpi.h>
+#else
+#include <mpi_dummy.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -637,6 +641,7 @@ void CSlib::onefield(int ftype, int flen, int &nbytes, int &nbytesround)
   else if (ftype == 3) bigbytes = biglen * sizeof(float);
   else if (ftype == 4) bigbytes = biglen * sizeof(double);
   else if (ftype == 5) bigbytes = biglen * sizeof(char);
+  else bigbytes = 0;
   bigbytesround = roundup(bigbytes,8);
 
   if (nbuf + bigbytesround > INT_MAX)

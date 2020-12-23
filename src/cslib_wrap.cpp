@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    CSlib - Client/server library for code coupling
-   http://cslib.sandia.gov, Sandia National Laboratories
+   https://cslib.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright 2018 National Technology & Engineering Solutions of
@@ -14,7 +14,11 @@
 
 // C style library interface to CSlib class
 
+#ifdef MPI_YES
 #include <mpi.h>
+#else
+#include <mpi_dummy.h>
+#endif
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
