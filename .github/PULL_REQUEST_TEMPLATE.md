@@ -12,7 +12,7 @@
 
 **Licensing**
 
-By submitting this pull request, I agree, that my contribution will be included in LAMMPS and redistributed under either the GNU General Public License version 2 (GPL v2) or the GNU Lesser General Public License version 2.1 (LGPL v2.1).
+By submitting this pull request, I agree,e that my contribution will be included in CSlib and redistributed under the Berkeley Software Distribution (BSD) License.
 
 **Further Information, Files, and Links**
 
