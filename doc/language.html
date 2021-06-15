@@ -1,0 +1,321 @@
+<HTML>
+<P><A HREF = "Manual.html">CSlib documentation</A>
+</P>
+<H3>Language requirements 
+</H3>
+<P>This page describes language specific issues to be aware of when
+writing client or server apps in different languages.
+</P>
+<UL><LI><A HREF = "#header">Header files and modules to include</A>
+<LI><A HREF = "#datatypes">Compatible data types</A>
+<LI><A HREF = "#strings">Strings in C/C++ versus Fortran</A>
+<LI><A HREF = "#contig">Contiguous memory for 2d, 3d, etc arrays</A>
+<LI><A HREF = "#order">Ordering of 2d, 3d, etc arrays in C/C++ versus Fortran</A>
+<LI><A HREF = "#mpicomm">Splitting an MPI communicator in different languages</A> 
+</UL>
+<HR>
+
+<HR>
+
+<H4><A NAME = "header"></A>Header files and modules to include 
+</H4>
+<P>Include these lines in any app file that makes calls to
+the CSlib.
+</P>
+<P>C++:
+</P>
+<PRE>#include "cslib.h"              // found in src dir
+using namespace CSLIB_NS; 
+</PRE>
+<P>This is the CSlib class header file and its namespace If you prefer
+not to use the namespace, you can prepend the namespace to the call
+that instantiates the CSlib and the pointer it returns, e.g.
+</P>
+<PRE>CSLIB_NS::CSlib *cs = new CSLIB_NS::CSlib(csflag,mode,str,&world); 
+</PRE>
+<P>C:
+</P>
+<PRE>#include "cslib_wrap.h"          // found in src dir 
+</PRE>
+<P>This is the C-style wrapper on the CSlib class, found in src.
+</P>
+<P>Fortran (2003 or later):
+</P>
+<P>Include these lines in any program element (main program, subroutine,
+function, etc) which calls the CSlib:
+</P>
+<PRE>USE iso_c_binding       ! standard Fortran module
+USE cslib_wrap          ! found in src or test dir 
+</PRE>
+<P>The iso_c_binding module defines the C-style data types and functions
+used in calls to CSlib.  The cslib_wrap module defines how Fortran
+calls the C interface to the CSlib.  The code for the interface is in
+src/cslib_wrap.f90 file (also test/cslib_wrap.f90).  That file must be
+compiled with the app; you can simply copy it into the directory with
+other app source files.
+</P>
+<P>Python:
+</P>
+<PRE>import cslib as CS      # found in src dir
+from mpi4py import MPI 
+</PRE>
+<P>The first line references the file src/cslib.py which defines a Python
+CSlib class which wraps the C interface to the CSlib.  The second line
+is only necessary if you are running a parallel Python application, so
+that you can pass an MPI communicator to the CSlib.
+</P>
+<P>See more details in <A HREF = "python.html">this section</A> on how to insure these
+two lines will work in your Python.
+</P>
+<HR>
+
+<H4><A NAME = "datatypes"></A>Compatible data types 
+</H4>
+<P>For the data types the CSlib supports, these are the equivalent native
+data types in different languages.  If sending a message with this
+type of data, you need to be sure both the client and server app agree
+on how to declare the data.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD >Data type </TD><TD > C/C++ </TD><TD > Fortran </TD><TD > Python/Numpy </TD><TD > Python/ctypes</TD></TR>
+<TR ALIGN="center"><TD >32-bit integer </TD><TD > int </TD><TD > integer(4)</TD><TD > intc </TD><TD > c_int</TD></TR>
+<TR ALIGN="center"><TD >64-bit integer </TD><TD > int64_t </TD><TD > integer(8) </TD><TD > int64 </TD><TD > c_longlong</TD></TR>
+<TR ALIGN="center"><TD >32-bit floating point </TD><TD > float </TD><TD > real(4) </TD><TD > float32 </TD><TD > c_float</TD></TR>
+<TR ALIGN="center"><TD >64-bit floating point </TD><TD > double </TD><TD > real(8) </TD><TD > float </TD><TD > c_double</TD></TR>
+<TR ALIGN="center"><TD >string </TD><TD > char * </TD><TD > character(c_char) </TD><TD > N/A </TD><TD > N/A 
+</TD></TR></TABLE></DIV>
+
+<P>Note that a character string in Fortran can also be declared as
+"character(len=32)" for sending. But for receiving, declare it as
+"character(c_char), pointer" and use the c_f_pointer() function to
+convert the received C-style string into the correct Fortran length.
+This is discussed below.
+</P>
+<P>Note that regular Python does not require declaration of data types.
+You can assign values like this:
+</P>
+<UL><LI>a = 5
+<LI>a = 3000000000
+<LI>a = 1.5
+<LI>a = 1.5e-200
+<LI>a = "hello" 
+</UL>
+<P>and Python knows whether it is an integer (any precision), floating
+point, or string, and will send/receive it to/from the CSlib
+correctly.  When using Numpy and ctypes within Python, it is
+different.  When you allocate a vector or multidimentional array of
+numeric data types, you must use the type identifiers above to declare
+the data correctly.  See the Python test codes in the test dir for
+examples.
+</P>
+<P>Read more about Numpy data types here:
+</P>
+<P><A HREF = "https://docs.scipy.org/doc/numpy-1.13.0/user/basics.types.html">https://docs.scipy.org/doc/numpy-1.13.0/user/basics.types.html</A>
+</P>
+<P>Read more about ctypes data types here:
+</P>
+<P><A HREF = "https://docs.python.org/2/library/ctypes.html">https://docs.python.org/2/library/ctypes.html</A>
+</P>
+<HR>
+
+<H4><A NAME = "strings"></A>Strings in C/C++ versus Fortran 
+</H4>
+<P>Character strings in C or C++ are NULL-terminated.  This means the
+string "hello" requires 6 bytes of storage.  Strings in Fortran are
+not NULL-terminated.  So "hello" uses only 5 bytes of storage.  Or it
+may be assigned like this:
+</P>
+<PRE>character(len=32) :: string
+string = "hello" 
+</PRE>
+<P>in which case 27 space characters are added to the end, to fill a
+32-character string.
+</P>
+<P>Internally, the CSlib stores strings in the C/C++ format with a
+trailing NULL.  This means a Fortran app that sends a string
+must pass it to the CSlib in that format, via the pack_string()
+method described in <A HREF = "send.html">this section</A>. For example,
+</P>
+<PRE>character(len=32) :: str = "hello
+call cslib_pack_string(cs,1,trim(str)//c_null_char) 
+</PRE>
+<P>The trim() function trims trailing space (if any).  A c_null_char
+is appended.
+</P>
+<P>Likewise a Fortran app that receives a string will receive it in the C
+format, via the unpack_string() method described in <A HREF = "receive.html">this
+section</A>.  For examples,
+</P>
+<P>character(c_char), pointer :: str(:) => null()
+ptr = cslib_unpack_string(cs,1)
+call c_f_pointer(ptr,str,[fieldlen(1)-1])
+</P>
+<P>The c_f_pointer() function assigs the C pointer to the string to the
+Fortran variable str, and sets its lenght to one less than the
+received fieldlen().  This removes the trailing NULL.
+</P>
+<HR>
+
+<H4><A NAME = "contig"></A>Contiguous memory for 2d, 3d, etc arrays 
+</H4>
+<P>As explained in <A HREF = "send.html">this section</A> and <A HREF = "receive.html">this
+section</A> data in multidimensional arrays can be passed as
+an argument to pack() or pack_parallel() for sending (or received by
+unpack_parallel()), but only if the data is stored contiguously in
+memory.
+</P>
+<P>For Fortran and Python (Numpy arrays or ctypes arrays) this is the
+case.  However for C/C++ it may not be the case, depending on how the
+app creates a multidimensional array.  The data in this kind of 2d Nx3
+array:
+</P>
+<PRE>int a<B>1000</B><B>3</B>; 
+</PRE>
+<P>is stored contiguously.  But its dimensions must be specified at
+compile time.
+</P>
+<P>A "double **" pointer to an Nx3 2d array in C, is more flexible.  It
+can be allocated at run time.  But it may not store the 3N values in
+contiguous memory, depending on how it was allocated.  It may be a
+pointer to N pointers, each of which points at 3 contiguous values.
+But the N 3-vectors are not contiguous with each other.
+</P>
+<P>The example code in <A HREF = "send.html">this section</A> and <A HREF = "receive.html">this
+section</A> assumes the allocation for a 2d array is done
+contiguously (and later freed) via methods like this.  Note that in
+malloc2d() there are two mallocs, one for 3N doubles (the data), the
+other for N pointers.  A reference like &a<B>0</B><B>0</B> then points to the
+data as a 1d chunk and can be passed to pack() or unpack_parallel().
+</P>
+<PRE>double **a = malloc2d(1000,3);
+free2d(a); 
+</PRE>
+<PRE>double **malloc2d(int n1, int n2)
+<I>
+  int nbytes = n1*n2 * sizeof(double);
+  double *data = (double *) malloc(nbytes);
+  nbytes = n1 * sizeof(double *);
+  double **array = (double **) malloc(nbytes); 
+</PRE>
+<PRE>  int n = 0;
+  for (int i = 0; i < n1; i++) <I>
+    array<B>i</B> = &data<B>n</B>;
+    n += n2;
+  </I>
+  return array;
+</I> 
+</PRE>
+<PRE>void free2d(double **array)
+<I>
+  if (array == NULL) return;
+  free(array<B>0</B>);
+  free(array);
+</I> 
+</PRE>
+<P>Similar mallocs/frees can be written for 3d, 4d, etc arrays.
+</P>
+<HR>
+
+<H4><A NAME = "order"></A>Ordering of 2d, 3d, etc arrays in C/C++ versus Fortran 
+</H4>
+<P>Multidimensional arrays in Fortran store their data contiguously in
+memory with the leftmost index varying fastest, and the rightmost
+index varying slowest.  Thus for this array:
+</P>
+<PRE>integer(4) :: a(2,2) 
+</PRE>
+<P>the order of the elements in memory is a(1,1), a(2,1), a(1,2), a(2,2).
+</P>
+<P>For C/C++ it is the oppposite (assuming the array data is stored in
+contiguous memory as described above, and not as pointers to
+pointers).  The rightmost index varies fastest, the leftmost index
+varies slowest.  So for this array:
+</P>
+<PRE>int a<B>2</B><B>2</B> 
+</PRE>
+<P>the order of the elements in memory is a<B>0</B><B>0</B>, a<B>0</B><B>1</B>, a<B>1</B><B>0</B>,
+a<B>1</B><B>1</B>.
+</P>
+<P>Since the CSlib treats multidimensional arrays as simply a chunk of
+contiguous memory, if you wish to send an array from a C/C++ app to a
+Fortran app, or vice versa, you must declare them in the 2 languages
+consistently.  For example, an array declared as Nx3 in C/C++
+should be declared as 3xN in Fortran.
+</P>
+<HR>
+
+<H4><A NAME = "mpicomm"></A>Splitting an MPI communicator in different languages 
+</H4>
+<P>As explained in <A HREF = "create.html">this section</A>, if the CSlib is used with
+messaging <I>mode</I> = "mpi/one", then both the client and server app are
+running within the same MPI communicator which spans both the client
+and server processors, typically MPI_COMM_WORLD.  That spanning
+communicator is passed as an argument when the CSlib is created
+(instantiated) by the app.  A <I>pworld</I> argument is also passed which
+is the sub-communicator for the processors the client or server app is
+running on.  To create the two sub-communicators, both apps must
+execute a MPI_Comm_split() before instantiating the CSlib.  Note that
+the MPI_Comm_split() call is synchronous; all processors in both the
+client and server apps must call it at the same time.  Here is example
+code for this operation in each language.  The line with the call to
+CSlib or cslib is what instantiates the library with the two
+communicators as arguments.
+</P>
+<P>C++:
+</P>
+<PRE>int me,nprocs,csflag;
+MPI_Comm world,partial,both; 
+</PRE>
+<PRE>MPI_Init(&argc,&argv);
+world = MPI_COMM_WORLD;
+MPI_Comm_rank(world,&me);
+csflag = 0;                    // 0 for client, 1 for server
+MPI_Comm_split(world,csflag,me,&partial);
+both = world;
+world = partial;               // reset app's world,me,nprocs to sub-communicator
+MPI_Comm_rank(world,&me);
+MPI_Comm_size(world,&nprocs);
+cs = new CSlib(csflag,mode,&both,&world); 
+</PRE>
+<PRE>MPI_Comm_free(&world);         // free the sub-commuicator when app exits 
+</PRE>
+<P>C:
+</P>
+<PRE>identical to C++, except for this final line:
+cslib_open(cslib,mode,&both,&world,cs); 
+</PRE>
+<P>Fortran:
+</P>
+<PRE>integer :: me,nprocs,csflag,partial,ierr
+integer, target :: world,both 
+</PRE>
+<PRE>call MPI_Init(ierr)
+world = MPI_COMM_WORLD
+call MPI_Comm_rank(world,me,ierr)
+csflag = 0;                ! 0 for client, 1 for server
+call MPI_Comm_split(world,csflag,me,partial,ierr)
+both = world
+world = partial            ! reset app's world,me,nprocs to sub-communicator
+call MPI_Comm_rank(world,me,ierr)
+call MPI_Comm_size(world,nprocs,ierr)
+call cslib_open_fortran_mpi_one(0,trim(mode)//C_null_char, &
+                                c_loc(both),c_loc(world),cs) 
+</PRE>
+<PRE>call MPI_Comm_free(world,ierr)  ! free the sub-commuicator when app exits 
+</PRE>
+<P>Python:
+</P>
+<PRE>from mpi4py import MPI    # this performs MPI Init
+world = MPI.COMM_WORLD
+me = world.rank
+csflag = 0                # 0 for client, 1 for server
+partial = world.Split(csflag,me)
+both = world
+world = partial           # reset app's world,me,nprocs to sub-communicator
+me = world.rank
+nprocs = world.size
+cs = CSlib(0,mode,both,world) 
+</PRE>
+<PRE>world.Free()              # free the sub-commuicator when app exits 
+</PRE>
+</HTML>

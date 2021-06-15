@@ -1,0 +1,250 @@
+<HTML>
+<P><A HREF = "Manual.html">CSlib documentation</A>
+</P>
+<H3>Create and destroy the library 
+</H3>
+<P>These calls create an instance of the CSlib and later destroy it.
+</P>
+<P>API:
+</P>
+<PRE>CSlib(int csflag, char *mode, void *ptr, MPI_Comm *pworld);
+~CSlib(); 
+</PRE>
+<P>The ptr argument is different for different modes, as explained below.
+</P>
+<HR>
+
+<P>C++:
+</P>
+<PRE>#include "cslib.h"                  // header file for CSlib 
+</PRE>
+<PRE>int csflag = 0;                     // 0 for client, 1 for server
+char *mode = "file";                // "file" or "zmq" or "mpi/one" or "mpi/two", see below
+char *ptr = "tmp.couple";           // filename or socket ID or MPI communicator, see below 
+</PRE>
+<PRE>MPI_Comm world = MPI_COMM_WORLD;    // MPI communicator 
+</PRE>
+<PRE>CSlib *cs = new CSlib(csflag,mode,ptr,NULL);     // serial usage
+CSlib *cs = new CSlib(csflag,mode,ptr,&world);   // parallel usage 
+</PRE>
+<PRE>delete cs; 
+</PRE>
+<P>Note the following details of the C++  syntax:
+</P>
+<UL><LI>To use the CSlib in serial, the final argument is NULL.  To use it in
+parallel, the final argument is a pointer to an MPI communicator,
+NOT the communicator itself. 
+
+<LI>The ptr argument is always a pointer, but points to different things
+depending on the mode.  More details below. 
+</UL>
+<HR>
+
+<P>C:
+</P>
+<PRE>#include "cslib_wrap.h"                   // header file for C interface to CSlib 
+</PRE>
+<P>Same argument declarations and notes as above for C++.
+</P>
+<P>void *cs;                                 // pointer to CSlib instance, used in all calls
+</P>
+<PRE>cslib_open(csflag,mode,ptr,NULL,cs);      // serial usage
+cslib_open(csflag,mode,ptr,&world,cs);    // parallel usage 
+</PRE>
+<PRE>cslib_close(cs); 
+</PRE>
+<HR>
+
+<P>Fortran:
+</P>
+<P>use iso_c_binding                        ! C-style data types and functions for Fortran
+use CSlib_wrap                             ! F90 interface to CSlib
+</P>
+<PRE>type(c_ptr) :: cs                          ! pointer to CSlib instance, used in all calls
+integer :: csflag = 0
+character(len=32) :: mode = "file"
+character(len=32) :: txt = "tmp.couple"
+integer, target :: world,both
+world = MPI_COMM_WORLD 
+</PRE>
+<PRE>call cslib_open_fortran(csflag,trim(mode)//c_null_char, &
+          trim(txt)//c_null_char,c_null_ptr,cs)              ! serial usage
+call cslib_open_fortran(csflag,trim(mode)//c_null_char, &
+          trim(txt)//c_null_char,c_loc(world),cs)            ! parallel usage 
+</PRE>
+<PRE>call cslib_open_fortran_mpi_one(csflag,trim(mode)//c_null_char, &
+          c_loc(both),c_loc(world),cs)                       ! parallel usage for mode = mpi/one 
+</PRE>
+<PRE>call cslib_close(cs) 
+</PRE>
+<P>Note the following details of the Fortran syntax:
+</P>
+<UL><LI>The mode and txt strings are passed as NULL-terminated C-style strings
+by trimming them (remove trailing space) and appending a
+c_null_char. 
+
+<LI>To use the CSlib in serial, a NULL if passed for the pworld argument
+as a c_null_ptr.  To use the CSlib in parallel, the MPI communicator
+is passed as a pointer via c_loc(world). 
+
+<LI>Using the CSlib with the mpi/one mode requires calling a different method.
+Two MPI communicators are passed, as explained below. 
+</UL>
+<HR>
+
+<P>Python:
+</P>
+<PRE>from cslib import CSlib                # Python wrapper on CSlib
+from mpi4py import MPI              # Python wrapper on MPI 
+</PRE>
+<PRE>csflag = 0
+mode = "file"
+ptr = "tmp.couple"
+world = MPI.COMM_WORLD 
+</PRE>
+<PRE>cs = CSlib(csflag,mode,ptr,None)       # serial usage
+cs = CSlib(csflag,mode,ptr,world)      # parallel usage 
+</PRE>
+<PRE>del cs                                 # not really needed, Python cleans up 
+</PRE>
+<HR>
+
+<HR>
+
+<P>Here are more details about the CSlib constructor arguments.
+</P>
+<P>IMPORTANT NOTE: The client and server apps must specify all the
+following arguments consistently in order to communicate.  The CSlib
+has no way to detect if this is done incorrectly, since the two apps
+run as separate executables.  The apps will likely just hang or even
+crash if that happens.
+</P>
+<HR>
+
+<P>The <I>csflag</I> argument determines whether the app is the client or the
+server.  Use <I>csflag</I> = 0 if the app is a client, <I>csflag</I> = 1 if the
+app is a server.
+</P>
+<HR>
+
+<P><I>Mode</I> can be one of 4 options.  Both apps must use the same <I>mode</I>.
+The choice of <I>mode</I> determines how the <I>ptr</I> argument is specified.
+</P>
+<P>For <I>mode</I> = "file" = the 2 apps communicate via binary files.  The
+<I>ptr</I> argument is a filename which can include a path, e.g. ptr =
+"subdir/tmp.couple" or <I>ptr</I> = "/home/user/tmpdir/dummy1".  Files that
+begin with this filename will be written, read, and deleted as
+messaging is performed.  The filename must be the same for both the
+client and server app.  For parallel apps running on a large parallel
+machine, this must be a path/filename visible to both the client and
+server, e.g. on the front-end or on a parallel filesystem.  It should
+not be on a node's local filesystem if the proc 0 of the two apps run
+on different nodes.  If the CSlib is instantiated multiple times (see
+<A HREF = "usage.html">this section</A> for use cases), the filename must be unique
+for each pair of client/server couplings.
+</P>
+<P>For <I>mode</I> = "zmq" = the 2 apps communicate via a socket.  The <I>ptr</I>
+argument is different for the client and server apps.  For the client
+app, ptr is the IP address (IPv4 format) or the DNS name of the
+machine the server app is running on, followed by a port ID for the
+socket, separated by a colon.  E.g.
+</P>
+<PRE>ptr = "localhost:5555"        # client and server running on same machine
+ptr = "192.168.1.1:5555"      # server is 192.168.1.1
+ptr = "deptbox.uni.edu:5555"  # server is deptbox.uni.edu 
+</PRE>
+<P>For the server, the socket is on the macjhine the server app is
+running on, so ptr is simply
+</P>
+<PRE>ptr = "*:5555" 
+</PRE>
+<P>where "*" represents all available interfaces on this machine, and
+5555 is the port ID.  Note that the port (5555 in this example) must
+be specified as the same value by the client and server apps.
+</P>
+<P>Note that the client and server can run on different machines,
+separated geographically, so long as the server accepts incoming TCP
+requests on the specified port.
+</P>
+<P>TODO: Still need to answer these Qs
+</P>
+<UL><LI>What values can port ID have?
+<LI>Need socket examples for a big cluster, how to find node IP addresses
+<LI>Can 2 servers run on same machine with different ports? 
+</UL>
+<P>If the CSlib is instantiated multiple times, (see <A HREF = "usage.html">this
+section</A> for use cases), the port ID (5555 in this example)
+must be unique for each pair of client/server couplings.
+</P>
+<P>For <I>mode</I> = "mpi/one" or <I>mode</I> = "mpi/two", the 2 apps communicate
+via MPI.  
+</P>
+<P>For "mpi/one", the <I>ptr</I> argument is a pointer to the MPI communicator
+that spans both apps, while the <I>pworld</I> argument (discussed below) is
+a pointer to the MPI communcator for just the client or server app.
+This means the two apps must split the spanning communicator before
+instantiating the CSlib, as discussed below.  The same as for <I>pworld</I>
+discussed below, the <I>ptr</I> argument is NOT the MPI communicator
+itself, but a pointer to it.
+</P>
+<P>For "mpi/two", the <I>ptr</I> argument is a filename created (then deleted)
+for a one-time small exchange of information by the client and server
+to setup an MPI inter-communicator for messaging between them.  As
+with the file mode, the filename can contain a path, and the same
+filename must be specified by the client and server.  On a large
+parallel machine, this must be a path/filename visible to both the
+client and server.  If the CSlib is instantiated multiple times (see
+<A HREF = "usage.html">this section</A> for use cases), the filename must be unique
+for each pair of client/server couplings.
+</P>
+<P>For more discussion on how to specify the <I>mode</I> and <I>ptr</I> arguments
+when running client and server apps in different scenarios (on a
+desktop, on two different machines, on a cluster or supercomputer),
+see <A HREF = "launch.html">this section</A>.
+</P>
+<HR>
+
+<P>The <I>pworld</I> argument determines whether the app uses the CSlib in
+serial versus parallel.  Use <I>pworld</I> = NULL for serial use.  For
+parallel use, the app initializes MPI and runs within an MPI
+communicator.  Typically this communicator is MPI_COMM_WORLD,
+however depending on how you intend to call and use the CSlib
+it could be a sub-communicator.  The latter is always the
+case if <I>mode</I> = "mpi/one".  See the important note below.
+</P>
+<P><I>Pworld</I> is passed to the CSlib as a pointer to the communicator the
+app is running on.  Note that <I>pworld</I> is NOT the MPI communicator
+itself, rather a pointer to it.  This allows it to be specified as
+NULL for serial use of the CSlib.  Thus if MPI_COMM_WORLD is the
+communicator, the app can do something like this, as shown in the C++
+code example above:
+</P>
+<PRE>MPI_Comm world = MPI_COMM_WORLD;
+CSlib *cs = new CSlib(csflag,"zmq",port,&world); 
+</PRE>
+<P>IMPORTANT NOTE: If <I>mode</I> = "mpi/one" then both the client and server
+app are running within the same MPI communicator which spans both the
+client and server processors, typically MPI_COMM_WORLD.  That spanning
+communicator is passed as the <I>ptr</I> argument, as dicsussed above.  In
+this case, <I>pworld</I> is the sub-communicator for the processors the
+client or server app is running on.  To create the two
+sub-communicators, both apps must invoke MPI_Comm_split() before
+instantiating the CSlib.  Note that the MPI_Comm_split() call is
+synchronous; all processors in BOTH the client and server apps must
+call it.
+</P>
+<P>Example code for doing this in various langautes is given in <A HREF = "language.html">this
+section</A>.
+</P>
+<HR>
+
+<P>When an app has completed its messaging, it should destroy its
+instance of the CSlib, freeing the memory it has allocated internally.
+The syntax for this operation is shown in the code examples at the top
+of this page.
+</P>
+<P>When using <I>mode</I> = "mpi/one", the app should also free the
+sub-communicator it created, as in the code examples given in <A HREF = "language.html">this
+section</A> for splitting the MPI communicator.
+</P>
+</HTML>

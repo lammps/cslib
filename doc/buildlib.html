@@ -1,0 +1,72 @@
+<HTML>
+<P><A HREF = "Manual.html">CSlib documentation</A>
+</P>
+<H3>Build the CSlib 
+</H3>
+<P>The CSlib can be built with MPI support (for parallel use by parallel
+apps), or without MPI support (for serial use by serial apps).  It can
+be built as a shared or static library.  It can be built with or
+without socket support via the ZeroMQ (ZMQ) library.
+</P>
+<P>All of this is done from the src dir.  There is a single Makefile with
+various targets and options.  Type "make help" to see this list:
+</P>
+<PRE>make		       default = shlib
+make shlib             build 2 shared CSlibs: parallel & serial
+make lib               build 2 static CSlibs: parallel & serial
+make all               build 4 CSlibs: shlib and lib
+make shlib_parallel    build shared parallel CSlib
+make shlib_serial      build shared serial CSlib
+make lib_parallel      build static parallel CSlib
+make lib_serial        build static serial CSlib
+make ... zmq=no        build w/out ZMQ support 
+</PRE>
+<P>Try the default shared library build first, by just typing "make".
+Shared libraries are preferred since you will not need to include
+additional libraries like ZMQ when you link the CSlib with an app.
+You can build static libraries if they are required on a large
+parallel machine.  Note that a shared library is required to use the
+CSlib from a Python app.  It's useful to have both a parallel and
+serial version of the CSlib so that either parallel and serial apps
+can be run.
+</P>
+<P>If you only need a parallel shared library, type "make
+shlib_parallel".  If you do not have MPI on your system, type "make
+shlib_serial".
+</P>
+<P>If you don't have the ZMQ library on your system, you can append
+"zmq=no" to any of the listed make commands.  The resulting library
+will not allow use of mode zmq for messaging via sockets.
+</P>
+<P>Note that you may wish to build the CSlib multiple times.  For
+example, if the client app is a serial program that does not use MPI,
+it will link to the CSlib with no MPI support, while if the server app
+runs in parallel, it will link to the CSlib with MPI support.
+</P>
+<P>If the build is successful, one or more of these library files are
+created:
+</P>
+<PRE>libcsmpi.so         # shared lib with MPI suppport
+libcsnompi.so       # shared lib with no MPI support
+libcsmpi.a          # static lib with MPI support
+libcsnompi.a        # static lib with no MPI support 
+</PRE>
+<P>The provided Makefile assumes the MPI and ZMQ header files, compilers,
+libraries, etc are in your path.  If that is not the case or you wish
+to use different compilers or flags, you can create/edit a new
+Makefile, e.g. Makefile.mine, and invoke it as follows:
+</P>
+<PRE>make -f Makefile.mine shlib ... 
+</PRE>
+<P>IMPORTANT NOTE: When building a client or serial app that uses the
+CSlib library in parallel, the app will also be built with MPI, since
+it passes an MPI communicator to the CSlib.  You MUST insure the same
+MPI library is used for building both the CSlib and client/server
+apps.  Otherwise you wlll get errors, either at build time (when the
+app is built) or at run time (because the MPI used by the CSlib will
+not be properly initialized by the app).  Insuring use of the same MPI
+library can be non-trivial when a system has multiple versions of MPI,
+or the CSlib and apps are built at different times or by different
+people.
+</P>
+</HTML>

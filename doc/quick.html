@@ -1,0 +1,130 @@
+<HTML>
+<P><A HREF = "Manual.html">CSlib documentation</A>
+</P>
+<H3>Quick tour 
+</H3>
+<P>You can quickly try out the CSlib if you
+</P>
+<UL><LI>build the CSlib
+<LI>build the test programs that use the CSlib
+<LI>run the test programs 
+</UL>
+<P>You can do this step-by-step (below), or do all these steps in one
+command from the test dir:
+</P>
+<PRE>% cd cslib/test
+% sh Run_serial.sh      # for serial apps
+% sh Run_parallel.sh    # for parallel apps
+% sh Run_mixed.sh       # for mixed apps (language, serial/parallel, etc) 
+</PRE>
+<P>These shell scripts build and run in all languages (C++, C, Fortran,
+Python), and for serial and parallel (via MPI).  This includes a
+socket mode via the ZeroMQ (ZMQ) library.  So if support for some of
+the options is not available on your system, apps may not build or
+run.  In which case you can try the 3-step process below.
+</P>
+<P>You can examine the source code of any of the apps in the test dir to
+see the logic and syntax for using the CSlib from your application.
+They invoke every method provided by the CSlib.
+</P>
+<HR>
+
+<P>Build the CSlib with one of these make commands.  This should produce
+one or more lib*.so files.  If you're stuck, read <A HREF = "#buildlib">this
+section</A>.
+</P>
+<PRE>% cd cslib/src
+% make                # build 2 shared CSlibs: parallel & serial
+% make zmq=no         # ditto if you don't have the ZeroMQ lib on your system
+% make shlib_serial   # just the serial lib if you don't have MPI on your system 
+</PRE>
+<HR>
+
+<P>Build the test programs.  This should produce pairs of executable
+files that start with "client" and "server".  If you're stuck, read
+<A HREF = "#buildtest">this section</A>.
+</P>
+<PRE>% cd cslib/test
+% make all           # build all the apps (CSlib and simple)
+% make serial        # build the CSlib serial apps, don't need MPI
+% make parallel      # build the CSlib parallel apps, except fortran
+% make f90           # build the CSlib fortran apps, serial & parallel 
+</PRE>
+<HR>
+
+<P>Run the test programs from the test dir.  Launch the client app in one
+window, the server app in another.  It doesn't matter which is
+launched first.  At the end, you should see output from the client for
+the effective messaging bandwidth, and an indication if any errors
+occurred.  The server should just silently exit.  If you're stuck,
+read <A HREF = "#runtest">this section</A>.  The test apps are explained in more
+detail in <A HREF = "testapps.html">this section</A>.
+</P>
+<P>These are the command-line args for the client and server apps:
+</P>
+<PRE>mode = file or zmq                          # for serial apps
+mode = file or zmq or mpi/one or mpi/two    # for parallel apps
+Nlen = length of vectors to exchange
+Niter = number of exchanges
+dtype = Python data type: 1 for list, 2 for Numpy, 3 for ctypes 
+</PRE>
+<P>IMPORTANT NOTE: You must specify the same mode and Nlen for both apps.
+For mode = mpi/one, launch both apps via a single mpirun command, not
+two commands in two windows, for example:
+</P>
+<PRE>% mpirun -np 2 client_parallel mode Nlen Niter : -np 4 server_parallel mode Nlen 
+</PRE>
+<P>Note that to run the Python apps, you must enable Python to find the
+CSlib shared library and src/cslib.py wrapper script.  To run the
+parallel Python apps, you must have mpi4py installed in your Python.
+See <A HREF = "python.html">this section</A> for details on both these topics.
+</P>
+<P>Serial C++, C, Fortran, Python:
+</P>
+<PRE>% client mode Nlen Niter    # launch in one window
+% server mode Nlen          # launch in second window 
+</PRE>
+<PRE>% client_c mode Nlen Niter
+% server_c mode Nlen 
+</PRE>
+<PRE>% client_f90 mode Nlen Niter
+% server_f90 mode Nlen 
+</PRE>
+<PRE>% python client.py mode Nlen Niter dtype
+% python server.py mode Nlen dtype 
+</PRE>
+<P>Parallel C++, C, Fortran, Python:
+</P>
+<PRE>% mpirun -np 2 client_parallel mode Nlen Niter
+% mpirun -np 4 server_parallel mode Nlen 
+</PRE>
+<PRE>% mpirun -np 2 client_parallel_c mode Nlen Niter
+% mpirun -np 4 server_parallel_c mode Nlen 
+</PRE>
+<PRE>% mpirun -np 2 client_parallel_f90 mode Nlen Niter
+% mpirun -np 4 server_parallel_f90 mode Nlen 
+</PRE>
+<PRE>% mpirun -np 2 python client_parallel.py mode Nlen Niter dtype
+% mpirun -np 4 python server_parallel.py mode Nlen dtype 
+</PRE>
+<P>Mix and match langauges and serial vs parallel.  A serial and parallel
+app can only use the CSlib together for mode = file or zmq.  If mode =
+mpi/two is used, both apps MUST be launched with mpirun, even if one
+or both of them only runs on a single processor.
+</P>
+<PRE>% client mode Nlen Niter
+% server_c mode Nlen 
+</PRE>
+<PRE>% client mode Nlen Niter
+% python server.py mode Nlen 
+</PRE>
+<PRE>% client mode Nlen Niter
+% mpirun -np 4 python server.py mode Nlen dtype 
+</PRE>
+<PRE>% mpirun -np 2 client_parallel mode Nlen Niter
+% mpirun -np 4 server_parallel_f90 mode Nlen dtype 
+</PRE>
+<PRE>% mpirun -np 2 client_parallel mode Nlen Niter
+% mpirun -np 4 python server_parallel.py mode Nlen dtype 
+</PRE>
+</HTML>

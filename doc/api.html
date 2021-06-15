@@ -1,0 +1,65 @@
+<HTML>
+<P><A HREF = "Manual.html">CSlib documentation</A>
+</P>
+<H3>API for the CSlib 
+</H3>
+<P>The CSlib is a C++ class, so it can be used directly from C++.  It can
+also be used by any langauge which can call C functions, since a
+C-style interface to the library is provided.  A Fortran 2003
+iso_c_binding interface file and a Python wrapper are also provided,
+both of which use the C interface.
+</P>
+<P>The APIs for all these languages are conceptually identical, they just
+differ in syntax.
+</P>
+<P>The C++, C, Fortran, and Python apps in the test dir illustrate use of
+this API.  They call all of the functions listed below.  These apps
+are described in <A HREF = "testapps.html">this section</A>.
+</P>
+<P>When running a parallel client or server app, all the processors in
+the app should typically make the same calls at the same time to the
+CSlib.  Several of the CSlib methods are effectively synchronizing (as
+noted on their doc pages), meaning they perform internal MPI
+communication between the processors in a single app.
+</P>
+<P>Here is the short list of all the CSlib functions, from the C++ class
+header file.  Click on a link for an explanation, including example
+code for how to call the CSlib from various languages.
+</P>
+<P><A HREF = "language.html">Language requirements</A>:
+</P>
+<P>This page describes how to use the CSlib from apps written in
+different languages.
+</P>
+<P><A HREF = "create.html">Create and destroy</A>:
+</P>
+<PRE>CSlib(int csflag, char *mode, char *txt, MPI_Comm *pworld);
+~CSlib(); 
+</PRE>
+<P><A HREF = "exchange.html">Send a message</A>:
+</P>
+<PRE>void send(int msgID, int nfield);
+void pack_int(int id, int value);
+void pack_int64(int id, int64_t value);
+void pack_float(int id, float value);
+void pack_double(int id, double value);
+void pack_string(int id, char *string);
+void pack(int id, int ftype, int flen, void *data);
+void pack_parallel(int id, int ftype, int nlocal, int *ids, int nper, void *data); 
+</PRE>
+<P><A HREF = "exchange.html">Receive a message</A>:
+</P>
+<PRE>int recv(int &nfield, int *&fieldID, int *&fieldtype, int *&fieldlen);
+int unpack_int(int id);
+int64_t unpack_int64(int id);
+float unpack_float(int id);
+double unpack_double(int id);
+char *unpack_string(int id);
+void *unpack(int id);
+void unpack_parallel(int id, int nlocal, int *ids, int nper, void *data); 
+</PRE>
+<P><A HREF = "query.html">Query statistics</A>:
+</P>
+<PRE>int extract(int flag); 
+</PRE>
+</HTML>

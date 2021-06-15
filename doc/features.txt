@@ -1,0 +1,54 @@
+"CSlib documentation"_Manual.html
+
+Features :h3
+
+The CSlib currently supports 4 messaging protocols or "modes" of
+code-to-code coupling:
+
+file = via files
+zmq = via sockets
+mpi/one = via MPI, where two apps are launched with one mpirun command
+mpi/two = ditto but launched with two mpirun commands :ul
+
+The file mode sends messages by writing/reading binary files.
+
+The zmq mode is implemented using the open-soure "ZeroMQ socket
+library"_zmq, referred to in this manual as ZMQ.
+
+The two mpi modes send messages via the distributed-memory "message
+passing interface (MPI)"_mpi.  They differ only in how the two
+applications (apps) are launched via MPI's mpirun or mpiexec command
+and in how the MPI_COMM_WORLD communicator and processor ranks are
+assigned to each app.
+
+:link(zmq,http://zeromq.org)
+:link(mpi,https://en.wikipedia.org/wiki/Message_Passing_Interface)
+
+From the app's persepective (client or server code) all these modes
+function identically.  The same calls are made to the CSlib, other
+than arguments to the constructor that chooses the messaging mode.
+For the "mpi/one" mode each application may also want to split the MPI
+communicator (MPI_COMM_WORLD) so that each app runs in its own
+communicator.  This is discussed in "this section"_language.html.
+
+In the CSlib, a "message" has a numeric ID and can contain zero or
+more "fields".  A field contains zero or more datums of a single
+"type".  A type is an integer or floating-point value with 32-bit or
+64-bit precision.  Character strings are also supported.  Arbitrary
+byte sequences may be supported in a future release.
+
+When a client or server code is run in parallel as a
+distributed-memory app, using MPI, only one of its processors
+participates in the CSlib messaging.  In MPI parlance, the proc 0 of
+one code communicates with the proc 0 of the other, either by files,
+via a socket, or via MPI sends and receives.
+
+However, all processors in each app call the CSlib functions
+simultaneously.  They can format their messages in one of 2 ways.  For
+sending, all processors can provide a copy of the same send data.  Or
+if the data is distributed across the processors, each can provide its
+portion to the send() call.  Likewise when the recv() is called, all
+processors can receive a copy of the entire message.  Or if the data
+is meant to be distributed, each can receive its portion.  The CSlib
+communicates data via MPI within the client and server apps to
+accomplish this.

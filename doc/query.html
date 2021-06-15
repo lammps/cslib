@@ -1,0 +1,61 @@
+<HTML>
+<P><A HREF = "Manual.html">CSlib documentation</A>
+</P>
+<H3>Query message statistics 
+</H3>
+<P>The CSlib stores a running count of how many messages the app has sent
+and received since the library was instantiated.  These two values can
+be queried by the app whenever desired.
+</P>
+<P>TODO: A cummulative count of message sizes as a bigint could be added
+</P>
+<P>API:
+</P>
+<PRE>int extract(int flag); 
+</PRE>
+<HR>
+
+<P>C++:
+</P>
+<P>CSlib *cs = CSlib(...);
+</P>
+<PRE>int nsend = cs->extract(1);
+int nrecv = cs->extract(2); 
+</PRE>
+<P>or more simply:
+</P>
+<PRE>int nsend = cs->nsend;
+int nrecv = cs->nrecv; 
+</PRE>
+<HR>
+
+<P>C:
+</P>
+<PRE>void *cs;
+cslib_open(...,&cs) 
+</PRE>
+<PRE>int nsend = cslib_extract(cs,1);
+int nrecv = cslib_extract(cs,2); 
+</PRE>
+<HR>
+
+<P>Fortran:
+</P>
+<PRE>type(c_ptr) : cs
+call cslib_open_fortran(...,cs) 
+</PRE>
+<PRE>integer :: nsend,nrecv
+nsend = cslib_extract(cs,1)
+nrecv = cslib_extract(cs,2) 
+</PRE>
+<HR>
+
+<P>Python:
+</P>
+<PRE>import cslib as CS
+cs = CS.open(...) 
+</PRE>
+<PRE>nsend = cs.extract(1)
+nrecv = cs.extract(2) 
+</PRE>
+</HTML>

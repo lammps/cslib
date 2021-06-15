@@ -1,0 +1,96 @@
+<HTML>
+<P><A HREF = "Manual.html">CSlib documentation</A>
+</P>
+<H3>Introduction 
+</H3>
+<P>The Client/Server library (CSlib) tries to make it easy to couple two
+stand-alone applications (apps) together via a simple messaging
+paradigm, namely the client/server model.  It was designed with
+scientific codes in mind, but could be used by any pair of apps that
+match the client/server model as described in <A HREF = "model.html">this
+section</A>.
+</P>
+<P>The library hides the details of the low-level messaging from the
+apps.  Both apps may be serial, both may be parallel (via MPI), or one
+can be serial and the other parallel.  This is useful in at least a
+few scenarios:
+</P>
+<OL><LI>One or both of the codes is not a library, so the other code
+cannot link to it and call it directly. 
+
+<LI>You wish to run the codes in parallel on different numbers of
+processors.  If the first code calls the other code as a library, and
+you run in parallel with MPI, then both codes run on all the
+processors.  This can be worked around, but the details can be
+ugly. 
+
+<LI>You want to create a generic protocol (format and content of messages)
+that allows one kind of code A to couple to another kind of code B.
+There may be multiple codes A and/or multiple codes B that could be
+coupled interchangeably.  The CSlib enables a single protocol to be
+defined between all A codes and all B codes.  By contrast if all the B
+codes are libraries, each A code would need to include code to call
+the various library interfaces, which are likely different. 
+
+<LI>You want to run the two codes on different machines in different
+geographic locations.  The socket mode of messaging can do
+this. 
+</OL>
+<P>To use the library, one of the apps acts as a "client", the other as a
+"server", as explained in <A HREF = "model.html">this section</A>.  Thus you need to
+add client or server logic to an app to call the CSlib appropriately
+and send/receive messages.  This is often easier to do than
+reconfiguring a code to run as a library.  If it is impossible to add
+new logic to an existing code (e.g. no access to source, or others
+will not have access to source code changes you make), you may be able
+to still write a simple wrapper on that code (e.g. via Python).  The
+wrapper can call the CSlib and communicate with the other code.  The
+wrapper can create input files for the black-box code, launch it, and
+parse its output.
+</P>
+<P>It may make sense for the same app to be able to function as either a
+client or server, depending on what kind of problem is being run.  In
+this scenario, the same code could be launched twice, once as a client
+and once as a server.  The two instances of the same code can then
+exchange messages with each other.
+</P>
+<P>The CSlib can be used to couple N > 2 codes together.  Simply
+instantiate the library once for each pair of codes you couple.  For
+example, if N = 4, and each code needs to communicate with the other
+3, the CSlib could be instantiated 6 times (4*3/2).  A pair of codes
+can also both instantiate the CSlib twice (or more), each acting once
+as a client and once as a server.  The two codes can then exchange
+messages with each other on different communication "channels" as
+needed.
+</P>
+<P>As described in the next section, the CSlib performs its messaging
+between two parallel codes in a simple manner, using one processor of
+each.  Thus it is not designed to efficiently couple codes when each
+is running on 100s or 1000s of processors, and where they frequently
+exchange large amounts of data.  This requires higher bandwidth
+parallel data transfers, where many or all processors of each code
+exchange data with each other simultaneously via MPI.
+</P>
+<P>Solutions to that problem typically use more specialized libraries and
+require the two codes be linked together as one application.  Here are
+references to papers and software on this topic:
+</P>
+<UL><LI><A HREF = "http://www.sandia.gov/~sjplimp/algorithms.html#TOY">Tinker-toy parallel
+programming</A> 
+
+<LI>A Parallel Rendezvous Algorithm for Interpolation Between Multiple
+Grids, S. J. Plimpton, B. Hendrickson, J. Stewart, J Parallel and
+Distributed Computing, 64, 266-276
+(2004). (<A HREF = "http://www.sandia.gov/~sjplimp/abstracts/jpdc03a.html">abstract</A>)
+
+
+<LI><A HREF = "http://ornl-cees.github.io/DataTransferKit/about">Data Transfer Kit (DTK)</A> 
+
+<LI><A HREF = "https://www.olcf.ornl.gov/center-projects/adios">Adaptable IO System
+(ADIOS)</A> 
+</UL>
+<P>At some point we may extend the CSlib to include options for a more
+parallel or high-bandwidth form of code coupling, either wrapping
+these tools directly or using conceptual ideas they implement.
+</P>
+</HTML>

@@ -1,0 +1,66 @@
+"CSlib documentation"_Manual.html
+
+Use cases for the CSlib :h3
+
+Here we describe different ways of using the CSlib in either serial or
+parallel.  Note that a pair of client and server apps can use the
+library in different ways, one can be a serial app, the other a
+parallel app.
+
+Also note that "running an app in parallel" and "using the CSlib in
+parallel" does not preclude running the app on a single processor.
+Here we are talking about whether the app and the CSlib are built with
+MPI support or not.  MPI itself operates perfectly fine on a single
+processor.
+
+It the app is serial (does not use or know about MPI), you must use
+the CSlib in serial, since there is no way for the app to pass it an
+MPI communicator.  This means you can only use the file or zmq modes
+of messaging.  You cannot use an MPI mode of messaging (mpi/one or
+mpi/two), even if the other app uses the CSlib in parallel. :ulb,l
+
+If the app is parallel, you should normally use the CSlib in parallel.
+If both apps are parallel, you can use any of the messaging modes the
+CSlib provides, as described in "this section"_#features. :l
+
+We say "normally" in the preceeding paragraph, because nothing
+prevents a parallel app from instantiating the CSlib serially (w/out
+passing an MPI communicator).  In that case, only proc 0 should
+normally instantiate and make calls to the CSlib.  The app will be
+responsible for having proc 0 communicate message data to its other
+processors as needed, instead of the CSlib doing it. :l
+
+We say "normally" for a 2nd time in the preceeding paragraph, because
+you could also use the CSlib in either of the following ways.  If all
+procsessors in one app instantiate the CSlib in serial, then each will
+look for a partner client or server to exchange messages with.  If the
+other app does the same thing, then pairs of processors, one in each
+app, could exchange messages with each other.  Or if two processors in
+the same app instantiate the CSlib in serial, one could act as a
+client, the other as a server, and they could exchange messages.  In
+the latter case you don't need two client and server apps; a single
+app is performing both functions.  Again, all of the messaging must
+use the file or zmq mode, not an MPI mode, because the CSlib is being
+used serially. :l
+
+Finally, two parallel apps can use multiple instances of the CSlib in
+parallel.  Each app can split their processors into sub-communicators.
+Each sub-commuicator in one app can pair with a sub-communicator in
+the other app.  If sub-communicators in each app instantiate the
+CSlib, they can exchange messages with a sub-communicator in the other
+app using any of the messaging modes the CSlib provides.  Similarly, a
+single parallel app, acting as both client and server, can use the
+CSlib in parallel.  If the app splits its MPI communicator into two
+(or more) sub-communicators, pairs of sub-communicators can each
+instantiate the CSlib.  One sub-communicator acts as a client, the
+other as a server, and they can exchange data in any of the messaging
+modes. :l,ule
+
+IMPORTANT NOTE: The CSlib must be built differently for use in serial
+versus parallel.  Build it with no MPI support for serial, and with
+MPI support for parallel.  "This section"_#buildlib explains how to
+build in both ways, which will produce libraries with different names,
+so an invididual app can link against either.
+
+TODO: Could enable building with MPI support but allowing serial use
+(no MPI communicator).

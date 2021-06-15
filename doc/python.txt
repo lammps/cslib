@@ -1,0 +1,195 @@
+"CSlib documentation"_Manual.html
+
+More Python details :h3
+
+The CSlib can be used from a client or server app written in Python
+using a provided Python wrapper on the C interface to the CSlib.
+Currently only Python 2.7 is supported.  At some point we'll make a
+Python 3 compatible version of the wrapper.
+
+This section describes a few additional requirements when using
+Python as well as a few options Python enables:
+
+"Building the CSlib for use from Python"_#pybuild
+"Accessing the CSlib from Python at runtime"_#pyrun
+"Parallel Python via mpi4py"_#pyparallel
+"Sending, receiving Python lists, Numpy arrays, ctypes vectors"_pydata
+
+:line
+:line
+ 
+Building the CSlib for use from Python" :h4,link(pybuild)
+
+A Python script loads the CSlib at runtime, which requires the CSlib
+to be built as a shared library, either for parallel or serial use.
+This can be done from the src directory by typing "make shlib".  See
+"this section"_#buildlib for more details and options.
+
+:line
+
+Loading the CSlib from Python at runtime :h4,link(pyrun)
+
+The Python interface to the CSlib is a single file src/cslib.py that
+implements a CSlib Python class.  An instance of the class can be
+created in a Python app as follows, where the arguments to open() are
+explained in "this section"_create.html:
+
+from CSlib import CS
+cs = CSlib.open(...) :pre
+
+If either of these lines gives an error, take the following steps, and
+try again.
+
+The error is likely because Python cannot find src/cslib.py and a
+shared library build of the CSlib (libcs.so or libcsnompi.so), which
+is also in the src dir.
+
+The simplest way to fix this, is to define (or extend) two environment
+variables.  If you do this in your shell start-up script you only need
+to do it once.  These examples use my local path for the CSlib; alter
+for your system accordingly:
+
+For bash, type these lines or add them to ~/.bashrc:
+
+export PYTHON_PATH="$PYTHON_PATH:/home/sjplimp/cslib/src"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/sjplimp/cslib/src" :pre
+
+For csh or tcsh, type these lines or add them to ~/.cshrc:
+
+setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/cslib/src
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/cslib/src :pre
+
+After editing, do this in an already-existing terminal window, so
+the path changes take effect:
+
+% source .bashrc
+% source .cshrc :pre
+
+Alternatively, you can extend your PYTHON_PATH and LD_LIBRARY_PATH
+when you run a client or server Python script, before you import
+and instantiate the CSlib:
+
+% python
+>>> import sys,os
+>>> sys.path.append("/home/sjplimp/cslib/src")   # path = PYTHON_PATY
+>>> sys.path                # to verify PYTHON_PATH has been extended
+>>> os.environ("LD_LIBRARY_PATH") += ":home/sjplimp/cslib/src"
+>>> os.environ("LD_LIBRARY_PATH") # to verify LD_LIBRARY_PATH has been extended :pre
+
+Alternatively, you can copy the files (cslib.py and libcs*.so) to
+someplace your current PYTHON_PATH and LD_LIBRARY_PATH variables
+already point to.
+
+:line
+
+"Parallel python via mpi4py :h4,link(pyparallel)
+
+For an app (Python or not) to use the CSlib in parallel, it must pass
+an MPI communicator to the CSlib.  Such an app also typically makes
+MPI calls in the app itself to work in parallel.  To do both of these
+in Python, use the "mpi4py"_http://www.mpi4py.org Python package.
+
+To see if mpi4y is already part of your Python type this line:
+
+>>> from mpi4py import MPI
+
+If it works you should be able to run this test.py script
+like this: mpirun -np 4 python test.py
+
+from mpi4py import MPI
+world = MPI.COMM_WORLD
+me = world.rank
+nprocs = world.size
+print "Me %d Nprocs %d" % (me,nprocs) :pre
+
+and get 4 lines of output "Me N Nprocs 4", where N = 0,1,2,3.
+
+If the import fails, you need to install mpi4py in your Python.
+Here are two ways to do it.
+
+If you are using "anaconda"_http://www.anaconda.org for your Python
+package management, simply type the following which will download and
+install it:
+
+conda install mpi4py :pre
+
+If not, you can download mpi4py from its web site
+"http://www.mpi4py.org"_http://www.mpi4py.org, unpack it, and install
+it via pip:
+
+pip install mpi4py :pre
+
+Once installed, the test.py example script above should run.
+
+IMPORTANT NOTE: When mpi4py is installed in your Python, it compiles
+an MPI library (e.g. inside conda) or uses a pre-existing MPI library
+it finds on your system.  This MUST be the same MPI library that the
+CSlib and the client and server apps are built with and link to,
+i.e. if other apps are not written in Python.  If they do not match,
+you will typically get run-time MPI errors when your client and server
+apps run.
+
+You can inspect the path to the MPI library that mpi4py uses like this:
+
+% python
+>>> import mpi4py
+>>> mpi4py.get_config() :pre
+
+:line
+
+Sending, receiving Python lists, Numpy arrays, ctypes vectors :h4,link(pydata)
+
+Python has several ways to represent a 1d vector or multi-dimensional
+array (2d, 3d, etc) of numeric values.  Once created, all of them can
+be accessed with the same syntax, e.g. sdouble\[500\] = 3.4 for the 1d
+vector, or value = sarray\[500\]\[2\] for the 2d array.
+
+Python list or tuple:
+
+nlen = 1000
+sint = (1,4,3,8,6)                          # 5-length tuple (values cannot be changed)
+sdouble = nlen*\[0.0\]                 # 1000-length 1d vector
+sarray = \[3*\[0\] for i in range(nlen)\]    # 1000x3 2d array (list of lists)
+
+Numpy arrays:
+
+import numpy as np
+nlen = 1000
+sdouble = np.zeros(nlen,np.float)    # 1000-length vector
+sarray = np.zeros((nlen,3),np.float)  # 1000x3 2d array
+
+ctypes vectors or arrays:
+
+import ctypes
+sdouble = (nlen * ctypes.c_double)()   # 1000-length vector
+sarray = (nlen * (3 * ctypes.c_double))()  # 1000x3 2d array
+
+The Numpy arrays and ctypes vectors store numeric data internally as
+contiguous chunks of memory, which Python lists or tuples do not.  For
+numeric operations in Python the Numpy arrays are typically most
+efficient, since you can call Numpy functions which operate on the
+vectors or arrays with C code.  The Numpy arrays and ctypes vectors
+have the additional advantage that when you send and receive them with
+the CSlib, their data does not need to be copied into C-compatible
+data structures.
+
+Data in all 3 of these formats, including a Python tuple, can be sent
+as a field in a message via the pack() methods described in "this
+section"_send.html.  The cslib.py wrapper detects which format the
+data is in, and converts it via ctypes to a C-style vector in order to
+call the C interface to the CSlib.  For a Python list or tuple this
+requires coping the data into a ctypes vector before calling the
+library.  For the Numpy and ctypes formats, no copy is needed.
+
+When a field is unpacked from a received message via the unpack()
+methods described in "this section"_receive.html, you can choose to
+have the data returned to the Python app in any of the 3 formats.
+This is done by using an optional final argument "tflag" to the
+unpack() and unpack_parallel() methods.
+
+tflag = 1 = Python list
+tflag = 2 = Numpy 1d vector
+tflag = 3 = ctypes 1d vector (default) :ul
+
+For tflag=1, this requires coping the data into a Python list.  For
+the Numpy and ctypes formats, no copy is needed.

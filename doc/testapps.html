@@ -1,0 +1,73 @@
+<HTML>
+<P><A HREF = "Manual.html">CSlib documentation</A>
+</P>
+<H3>Test programs 
+</H3>
+<P>There are several pairs of test programs in the test dir.  These use
+the CSlib:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >client.cpp, server.cpp </TD><TD > serial client/server in C++</TD></TR>
+<TR><TD >client_c.cpp, server_c.cpp </TD><TD > serial c/s in C</TD></TR>
+<TR><TD >client_f90.f90, server_f90.f90 </TD><TD > serial c/s in Fortran 90</TD></TR>
+<TR><TD >client.py, server.py </TD><TD > serial c/s in Python</TD></TR>
+<TR><TD >client_parallel.cpp, server_parallel.cpp </TD><TD > parallel c/s in C++</TD></TR>
+<TR><TD >client_parallel_c.cpp, server_parallel_c.cpp </TD><TD > parallel c/s in C</TD></TR>
+<TR><TD >client_parallel_f90.f90, server_parallel_f90.f90 </TD><TD > parallel c/s in Fortran 90</TD></TR>
+<TR><TD >client.parallel_py, server_parallel.py </TD><TD > serial c/s in Python 
+</TD></TR></TABLE></DIV>
+
+<P>These are stand-alone apps which do not use the CSlib:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >simple_client_zmq, simple_server_zmq </TD><TD > c/s in native ZMQ</TD></TR>
+<TR><TD >simple_client_mpi_one, simple_server_mpi_one </TD><TD > c/s in native MPI via single mpirun</TD></TR>
+<TR><TD >simple_client_mpi_two, simple_server_mpi_two </TD><TD > c/s in native MPI via two mpiruns 
+</TD></TR></TABLE></DIV>
+
+<P>Codes in the first table (CSlib test apps) illustrate how to use the
+CSlib from different languages, for both serial and MPI parallel
+applications.  Codes in the second table (simple test apps) do not use
+the CSlib.  They are bare-bones codes that call the zeroMQ (ZMQ) and
+MPI libraries directly.  They can be useful for debugging if the CSlib
+tests do not build or work properly on your system for some reason.
+</P>
+<P>The CSlib test apps written in C++ instantiate the CSlib as a C++
+class.  The C apps are actually written in (vanilla) C++ but call the
+CSlib through its C interface, just as a true C program would.  The
+Fortran programs also call the CSlib through its C interface, using a
+Fortran iso_c_binding interface file (src/cslib_wrap.f90 or
+test/cslib_wrap.f90).  The Python scripts use the Python interface in
+src/cslib.py), which in turn wraps the C interface of the CSlib.
+</P>
+<P>The serial CSlib test apps must each be run on a single processor.
+The parallel CSlib test apps can be run via mpirun on any number of
+processors, including a single processor. Parallel client and server
+apps can run on different numbers of processors.  You can run a serial
+client app with a parallel server app, or vice versa.  You can run a
+client app in one language with a server app in another language.
+</P>
+<P>All the CSlib test apps are functionally identical.  They exercise the
+complete set of library calls for the CSlib.  They can be run in any
+of the messaging modes (except the serial apps cannot use an MPI
+mode).  The client sends a set of vectors and scalars to the server.
+The server receives them, increments the vectors and scalars, and
+sends them back to the client.  The client receives them, and updates
+the data in its vectors and scalars.  This is repeated N times after
+which the client sends an all-done message to the server.  The vector
+length is an input to both the client and server; the iteration count
+N in an input to the client.  The Python apps also have an input for
+which Python data type to use for vectors (lists or tuples, Numpy
+array, ctypes vectors), since the CSlib Python wrapper (src/cslib.py)
+will work with all 3.
+</P>
+<P>At the end of a run, both the client and server app should exit
+cleanly.  The client prints stats and timing info about the run,
+including the effective messaging bandwidth.  It also prints an error
+metric on the max difference for any element of any of the vectors or
+scalars, between the acutal versus expected value.  If it is non-zero
+and tiny, there may have been some accumulated round-off error for
+floating point arithmetic.  If it is not tiny, there is likely a bug
+in the test program or the CSlib.
+</P>
+</HTML>

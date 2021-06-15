@@ -1,0 +1,129 @@
+"CSlib documentation"_Manual.html
+
+Running client/server apps :h3
+
+To run a client/server model requires launching two codes (apps),
+often at (nearly) the same time.  Here are examples of how to do this
+on different platforms.
+
+:line
+
+Desktop machine:
+
+You can launch the client and server apps in different terminal
+windows like this:
+
+% client args ...              # serial executable (client) in one window
+% server args ...              # ditto for server in other window :pre
+
+% python client.py args ...    # two serial Python scripts
+% python server.py args ... :pre
+
+% mpirun -np 2 client args ...          # two parallel executables
+% mpirun -np 4 server args ... :pre
+
+% mpirun -np 2 python client.py args ...  # two parallel Python scripts
+% mpirun -np 4 python server.py args ... :pre
+
+% client args ...                        # serial executable in one window
+% mpirun -np 4 server args ...           # parallel executable in the other :pre
+
+You can also launch both executables in the same window, if you append
+a "&" character to launch the first app in the background, like this:
+
+% mpirun -np 2 client args ... &         # two parallel executables in same window
+% mpirun -np 4 server args ... :pre
+
+If the two apps use the "mpi/one" messaging mode, they must be
+launched together using a single mpirun command like this:
+
+% mpirun -np 2 client args ... : -np 4 server args :pre
+
+If the two apps use the "mpi/two" messaging mode, they must be both be
+launched with an mpirun command, even if one or both them run on a
+single processor.  This is so that MPI can figure out how to connect
+both MPI processes together to exchange MPI messages between them.
+
+IMPORTANT NOTE: In any of these launch scenarios, for any mode of
+messaging, it does not matter whether you launch the client or server
+app first.  All the CSlib messaging modes will block when the CSlib is
+instantiated, until a connection is made with the other app.  An
+exception is the file mode where each app will block at its first
+recv() until the other app performs a matching send().
+
+:line
+
+Two distinct machines:
+
+This could be two desktop machines on the same network, or two
+geographically separated machines.
+
+Only the CSlib "file" and "zmq" messaging modes are relevant in this
+scenario, since you cannot run a single instance of MPI across both
+machines.
+
+Use of the "file" mode requires a common file system which both
+machines can write to and where they can both access files written by
+the other machine.
+
+Use of the "zmq" mode, one machine is the server, the other is the
+client.  The client simply needs to know the IP address of the server
+and the client and server need to agree on a port ID for sending and
+receiving messages.
+
+:line
+
+Cluster or supercomputer:
+
+On these machines you typically run from a single window if nodes were
+requested interactively, or from a batch script in a queueing system
+(Slurm, MOAB, etc).  In both cases the launch comands listed above for
+a "Desktop machine" should work, so long as a "&" character is used at
+the end of the first command (launching the first app), so that both
+apps can effectively be launched at the same time.
+
+TODO: Need to also discuss these issues:
+
+Give examples of OpenMPI syntax for task placement
+Port IDs and IP addresses for zmq mode, how to ID them on a cluster
+File mode requires a common front-end or parallel file system :ul
+
+Note that on a cluster or a supercomputer (or even on a single node,
+i.e. a desktop), the mpirun command gives you control over which nodes
+and cores an application is launched on.  Since you are running two
+apps (client and server), you should think about how you want to use
+the available compute resources.  If you have P total MPI tasks
+(typically P = nodes * cores/node), you could do any of the following:
+
+run both the client and server on all P tasks
+run the client on P1 tasks and the server on P2 = P - P1 tasks
+run the client on P1 < P tasks and the server on P tasks (or vice versa) :ul
+
+If the computation the client performs is tiny compared to what the
+server computes, it makes sense to run the server on more processors.
+Or vice versa.  If the client does nothing while waiting for the
+server to respond, and ditto while the server waits for a request from
+the client, then it may make sense to run one of the client and server
+on all processors and the other on some (or all) of the processors.
+Or at least to run proc 0 of both the client and server on the same
+core, so they can exchange messages quickly, and because neither will
+be computing on the core at the same time.
+
+:line
+
+IMPORTANT NOTE: When launching a parallel client or server app that
+uses the CSlib in parallel you obviously use the mpirun command (or
+equivalent).  When running a parallel app on a single processor, you
+may be used to launching it using just the executable name (without
+mpirun).  However, when using the CSlib in one of its mpi modes, you
+MUST usee mpirun to launch both apps.  This is because you are
+launching two apps (the client and server) and relying on their
+respective mpirun environments to enable each app to find the other
+and send/receive MPI messages between them.
+
+IMPORTANT NOTE: If a client or server app crashes or hangs (and you
+kill it), e.g. due to a bug in how you call the CSlib, then temporary
+files may be left on your system.  These will have the names or
+prefixes specified when the apps instantiated the CSlib.  You should
+delete these files before running again, otherwise the existing files
+may produce unpredictable behavior in a subsequent run.

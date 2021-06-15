@@ -1,0 +1,99 @@
+"CSlib documentation"_Manual.html
+
+Client/server model of communication :h3
+
+The "client/server model"_cswiki is a messaging paradigm, used
+ubiquitously by web-based applications, where one or more clients
+(e.g. your phone) communicate with a server (e.g. a website).  In the
+context of the CSlib, it can used to couple two scientific
+applications (apps) together where one app acts as the "client" and
+the other as the "server".  The client sends messages to the server
+requesting it perform specific computations and return the results.
+
+:link(cswiki,https://en.wikipedia.org/wiki/Client%E2%80%93server_model)
+
+These are key points to understand about the client/server model, as
+it is implemented in the CSlib.  The test apps, discussed in "this
+section"_buildtest.html, illustrate all these points, so they are
+useful to look at to see how to morph your app so it can run as a
+client and/or server.
+
+At run time, the client and server codes (apps) must use the same mode
+of communication (obviously), i.e. they agree to communicate by files,
+by sockets, or via MPI.  The mode setup is performed by the initial
+call to the library, made by both the client and server apps. For each
+mode there are arguments for the instantiation which must be
+consistent between the client and server. :olb,l
+
+All messaging follows a single pattern, repeated as many times as
+needed: :l
+
+ client sends a request message
+ server receives the request message
+ server sends a response message
+ client receives the response message :ul
+
+This means the server cannot initiate a send.  It also means the
+client cannot send several messages in a row, then wait for a
+response.  Likewise the server cannot send several messages in a row
+as a response, then wait for a new request. :l
+
+When the client is done, it should tell the server there are no more
+requests by sending a final message.  The server should respond to the
+client.  The client should wait to receive that final message from the
+server. :l
+
+To send a message, the client or server performs two operations.  The
+first is to call send() with a message ID and # of fields.  The second
+is to call pack() or pack_parallel() once for each field.  Pack() is
+used if all processors have a copy of the same field data.
+Pack_parallel() is used if each sending processor owns a portion of
+the field data, e.g. each proc owns a subset of grid cells or
+particles.  In the latter case, the message that is sent to the other
+app is the union of all the processor's portions. :l
+
+To receive a message, the client or server performs two operations.
+The first is to call recv() which returns with a message ID, # of
+fields, and info about each field.  The second is to call unpack() or
+unpack_parallel() once for each field (if desired).  Unpack() returns
+a pointer to all the field data to every processor (even if it was
+sent via pack_parallel()).  Unpack_parallel() copies the portion of
+the field data each receiving processor owns into memory owned by the
+app. :l
+
+A recv() call is always blocking.  It will not return until the
+message from the other app has arrived and the CSlib has stored the
+message data internally.  A send() call is not blocking for the
+{file} mode.  The file of send data is written and the call returns,
+whether the other app reads the file immediately or not.  A send()
+call for the other modes (zmq, mpi/one, mpi/two) may or may not be
+blocking.  It depends on the size of the message and the protocols
+that ZMQ and MPI use for sending/receiving large messages.  If the
+message is large, the sender may block until the receiver is ready to
+receive the data. :l
+
+You need to pay attention to whether the memory for various library
+calls is owned by the client or server apps or by the CSlib.  It's
+different for sends versus receives.  In the case of a send() or
+pack(), the app owns the memory.  The CSlib makes an internal copy of
+the data to send it as a message to the other app.  Thus as soon as
+the send() call returns, the app can re-use its memory.  In the case
+of a recv() or unpack(), the CSlib owns the memory because it
+allocated it to receive the message from the other app.  The CSlib
+simply returns pointers to that internal memory to the app.  The app
+can examine the values or it can make its own copy if desired.  In the
+case of unpack_parallel() the portion of returned field data is copied
+into the app's memory. :l
+
+Note that preceeding paragraph implies something important.  The CSlib
+re-uses its internal memory for every new send or receive call, for
+both per-field info and per-field data.  This means the app cannot
+expect the pointers to received data returned from the recv() and
+unpack() calls to remain valid, once it begins to call send(), pack(),
+or pack_parallel() to send the next message.  The app MUST make its
+own copy of the recv() or unpack() data if persistence is required.
+This is true even if the app simply wishes to in-place modify a vector
+of field data to return it to the other app.  To do this, the app
+should make a copy of the vector, modify the copy, then send the copy.
+We may add alernate memory usage options to the CSlib in the
+future. :l,ole

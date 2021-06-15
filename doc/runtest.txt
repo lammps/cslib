@@ -1,0 +1,83 @@
+"CSlib documentation"_Manual.html
+
+Run the test apps :h3
+
+After you have "built the CSlib"_buildlib.html and "built the test
+apps"_buildapps.html, you can run them by following the directions in
+the "quick tour"_quick.html, which explains the command-line arguments
+used by both the client and server apps.  Both the "quick
+tour"_quick.html and "running client/server apps"_quick.html sections
+explain the syntax for launching both apps together, either from two
+terminal windows or a single window, or on a parallel machine.
+
+We explain some additional details here.
+
+:line
+
+You can perform a series of test runs via the shell scripts provided
+in the test dir:
+
+% cd cslib/test
+% sh Run_serial.sh      # for serial apps
+% sh Run_parallel.sh    # for parallel apps
+% sh Run_mixed.sh       # for mixed apps (language, serial/parallel, etc)
+% sh Run_simple.sh      # for simple apps :pre
+
+which first build the CSlib, then build a subset of test apps, then
+perform a series of runs in serial or parallel using all the
+langauges.
+
+As explained in "this section", after a successful run both apps
+should exit cleanly, the error count should be zero, and the effective
+messaging bandwidth of the run should be shown.
+
+:line
+
+You can also run any pairing of a single client and single server app
+together from the command line.  Note that the two apps can be in
+different languages, the two apps can be run on different processor
+counts, or one can be serial and the other parallel.  For the latter,
+you must use mode = "file" or "zmq"; modes "mpi/one" and "mpi/two"
+require both apps be parallel.  The Run_mixed.sh scripts gives several
+examples of this.
+
+The "quick tour"_quick.html section gives many examples of the syntax
+for running a client and server app from two terminal windows.  The
+*.sh scripts illustrate the syntax for running both apps from one
+window, by simply appending a "&" character to run the first app in
+the background.
+
+Note that for mode = "mpi/one", a single mpirun command launches both
+apps, so this mode must be used from one terminal window.
+
+Note that for mode = "mpi/two", each app must be launched by a mpirun
+command, even if they run on a single processor.  This is so that MPI
+can figure out how to connect both MPI processes together to exchange
+MPI messages between them.
+
+:line
+
+If the Python apps fail to launch or give errors, see "this
+section"_python.html for details on how to setup Python to work with
+the CSlib on your machine.
+
+:line
+
+The simple apps do not use the CSlib and may be useful to test if the
+ZeroMQ (ZMQ) library and MPI library work as expected on your system.
+You can run two of them like this, from different terminal windows.
+
+% simple_client_zmq 10 &       # 10 = # of times to loop
+% simple_server_zmq :pre
+
+% mpirun -np 3 simple_client_mpi_two 10 &    # 10 = # of times to loop
+% mpirun -np 4 simple_server_mpi_two :pre
+
+And the third like this, from one terminal window
+
+% mpirun -np 3 simple_client_mpi_one 10 : -np 4 simple_server_mpi_one :pre
+
+Again, 10 = # of times to loop.
+
+The simple ZMQ example is adpated from the "ZeroMQ guidebook web
+page"_http://zguide.zeromq.org/page:all (C version).

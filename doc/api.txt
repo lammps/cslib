@@ -1,0 +1,62 @@
+"CSlib documentation"_Manual.html
+
+API for the CSlib :h3
+
+The CSlib is a C++ class, so it can be used directly from C++.  It can
+also be used by any langauge which can call C functions, since a
+C-style interface to the library is provided.  A Fortran 2003
+iso_c_binding interface file and a Python wrapper are also provided,
+both of which use the C interface.
+
+The APIs for all these languages are conceptually identical, they just
+differ in syntax.
+
+The C++, C, Fortran, and Python apps in the test dir illustrate use of
+this API.  They call all of the functions listed below.  These apps
+are described in "this section"_testapps.html.
+
+When running a parallel client or server app, all the processors in
+the app should typically make the same calls at the same time to the
+CSlib.  Several of the CSlib methods are effectively synchronizing (as
+noted on their doc pages), meaning they perform internal MPI
+communication between the processors in a single app.
+
+Here is the short list of all the CSlib functions, from the C++ class
+header file.  Click on a link for an explanation, including example
+code for how to call the CSlib from various languages.
+
+"Language requirements"_language.html:
+
+This page describes how to use the CSlib from apps written in
+different languages.
+
+"Create and destroy"_create.html:
+
+CSlib(int csflag, char *mode, char *txt, MPI_Comm *pworld);
+~CSlib(); :pre
+
+"Send a message"_exchange.html:
+
+void send(int msgID, int nfield);
+void pack_int(int id, int value);
+void pack_int64(int id, int64_t value);
+void pack_float(int id, float value);
+void pack_double(int id, double value);
+void pack_string(int id, char *string);
+void pack(int id, int ftype, int flen, void *data);
+void pack_parallel(int id, int ftype, int nlocal, int *ids, int nper, void *data); :pre
+
+"Receive a message"_exchange.html:
+
+int recv(int &nfield, int *&fieldID, int *&fieldtype, int *&fieldlen);
+int unpack_int(int id);
+int64_t unpack_int64(int id);
+float unpack_float(int id);
+double unpack_double(int id);
+char *unpack_string(int id);
+void *unpack(int id);
+void unpack_parallel(int id, int nlocal, int *ids, int nper, void *data); :pre
+
+"Query statistics"_query.html:
+
+int extract(int flag); :pre
