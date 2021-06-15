@@ -1,0 +1,149 @@
+<HTML>
+<HEAD>
+    <TITLE> CSlib Client/Server Coupling Library </TITLE>
+    <meta name="Description" content="CSlib home page">
+    <meta name="keywords" content="client/server coupling, MPI, multiphysics, multiscale">
+    <meta name="google-site-verification" content="jIe-V87O61oNvgWFgBXMeF5bFl35XjSaG0Fm8_7q5VU" />
+    <meta name="review" content="08_09_2018" />
+    <meta name="filename" content="index.html" />
+    <meta name="subject" content="CSlib home page" />
+    <meta name="sandia.approval_type" content="formal" />
+    <meta name="sandia.approved" content="2018-8810W" />
+    <link rev="owns" title="Steve Plimpton" href="mailto:sjplimp@sandia.gov" />
+    <link rev="made, publisher" title="Steve Plimpton" href="mailto:sjplimp@sandia.gov" />
+    <meta name="MSSmartTagsPreventParsing" content="TRUE" />
+    <meta name="Author" content="Steve Plimpton" />
+</HEAD>
+
+<CENTER><H3>CSlib, a client/server messaging library for coupling scientific applications 
+</H3></CENTER>
+<CENTER><I>"The medium is the message.</I> -- Marshall McLuhan 
+</CENTER>
+<CENTER><I>"My life is my message.</I> - Mahatma Gandhi 
+</CENTER>
+<CENTER><I>"If you want a love message to be heard, it has got to be sent out.</I> -
+Mother Teresa 
+</CENTER>
+<HR>
+
+<P>This is the home page for the client/server messaging library (CSlib).
+It is a lightweight implementation of the client/server model suitable
+for coupling two scientific applications runnning in serial or
+parallel.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD ><A HREF = "doc/Manual.html">Documentation</A></TD><TD ><A HREF = "http://www.sandia.gov/~sjplimp/download.html">Download</A></TD><TD ><A HREF = "papers.html">Publications</A></TD><TD ><A HREF = "open_source.html">Open source</A></TD></TR>
+<TR ALIGN="center"><TD > </TD><TD ><A HREF = "https://github.com/lammps/cslib">GitHub</A></TD><TD ><A HREF = "bug.html">Latest features & bug fixes</A></TD><TD ><A HREF = "contribute.html">Contribute</A> 
+</TD></TR></TABLE></DIV>
+
+<P>The <A HREF = "https://en.wikipedia.org/wiki/Client%E2%80%93server_model">client/server model</A> is a messaging paradigm, used
+ubiquitously by web-based applications, where one or more clients
+(e.g. your phone) communicate with a server (e.g. a website).  In the
+context of the CSlib, it can used to couple two scientific
+applications (apps) together where one app acts as the "client" and
+the other as the "server".  The client sends messages to the server
+requesting it perform specific computations and return the results.
+</P>
+<P>Advantages of this mode of coupling, supported by the CSlib, are as
+follows:
+</P>
+<UL><LI>Messaging can be done by files, sockets (using the <A HREF = "http://zeromq.org">ZMQ library</A>),
+or <A HREF = "https://en.wikipedia.org/wiki/Message_Passing_Interface">MPI</A>. 
+
+<LI>The CSlib can be used from C++, C, Fortran, or Python.  Or any
+language which can make calls to a C-style API. 
+
+<LI>The two apps operate as standalone executables; neither needs a
+library interface since they are not linked to each other. 
+
+<LI>Each app can run in serial or parallel, or on different numbers of
+processors.  They can be launched on the same or different physical
+processors of a parallel machine.  Socket communication means the two
+apps can run on geographically distinct machines. 
+
+<LI>Modifying an app to work as a client or server via the CSlib can be
+done in one of two ways.  Calls to the CSlib can be added to the app,
+or a wrapper program (e.g. a Python script) can be written which calls
+the CSlib, creates input for the app, invokes it, and parses its
+output. 
+
+<LI>Multiple instances of the CSlib can be used to couple more than 2 apps
+to each other in different patterns. 
+
+<LI>A communication prototcol can be defined for a particular style of
+coupling.  In principle this allows any client code of type A to be
+coupled to any server code of type B, so long as both codes implement
+the AB protocol via the CSlib.  An example is explained below for <I>ab
+initio</I> molecular dynamics. 
+</UL>
+<P>A limitation of the CSlib, is that it's meant for loose coupling of
+two apps when the cost of the data exchange is not
+performance-critical.  It is not designed for tight-coupling scenarios
+where large volumes of data need to be exchanged rapidly between large
+numbers of processors.  Other kinds of messaging paradigms and
+toolkits exist for that purpose.  See the <A HREF = "doc/intro.html">intro page</A>
+of the CSlib manaul for some links.
+</P>
+<HR>
+
+<P>The CSlib is used in <A HREF = "http://lammps.sandia.gov">LAMMPS</A>, a parallel
+molecular dynamics (MD) code, via its MESSAGE package.  These example
+use cases are included in the LAMMPS distribution:
+</P>
+<UL><LI>A Monte Carlo (MC) client code uses LAMMPS as a server for energy
+evaluations and dynamics runs between MC moves. 
+
+<LI>LAMMPS runs in client mode to perform <I>ab initio</I> MD using the VASP
+quantum DFT code as a server for energy/force/virial computations.  If
+the protocol (what messages to send and receive) were implemented by
+another quantum code, it could be coupled to LAMMPS with no additional
+changes (to LAMMPS).  And vice versa for another MD code coupling to
+VASP (or another quantum code). 
+</UL>
+<HR>
+
+<P>The CSlib is an open-source code, distributed freely under the terms
+of the modified <A HREF = "http://en.wikipedia.org/wiki/BSD_license">Berkeley Software Distribution (BSD) License</A>.
+See <A HREF = "open_source.html">this page</A> for more details.  It was developed
+at <A HREF = "http://www.sandia.gov">Sandia National Laboratories</A>, a US <A HREF = "http://www.doe.gov">Department of Energy</A>
+facility, for use in coupling scientific applications running on
+desktop machines to large supercomputers.  Funding for the CSlib came
+from DOE's <A HREF = "https://science.energy.gov/ascr">Office of Advanced Scientific Computing Program</A>
+(OASCR) under the auspices of its <A HREF = "https://www.exascaleproject.org">Exascale Computing Program</A>
+(ECP).
+</P>
+<P>The author of the CSlib is <A HREF = "http://www.sandia.gov/~sjplimp">Steve Plimpton</A>, who can be contacted
+at sjplimp at sandia.gov.
+</P>
+<P>The CSlib WWW site is hosted by Sandia, which has this <A HREF = "http://www.sandia.gov/general/privacy-security/index.html">Privacy and
+Security statement</A>.
+</P>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<HR>
+
+<CENTER><H4>Recent CSlib News 
+</H4></CENTER>
+<UL><LI><IMG SRC = "new.gif"> (8/18) Initial open-source release of the CSlib. 
+</UL>
+</HTML>

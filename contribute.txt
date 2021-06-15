@@ -1,0 +1,31 @@
+"CSlib website"_cws :c
+:link(cws,index.html)
+
+:line
+
+Contributing to the CSlib :h3
+
+In the spirit of an open-source code, there are various ways you can
+contribute to making the CSlib client/server messaging library better.
+You can send email on any of these items to the developers listed on
+the "CSlib website"_cws.
+
+Point prospective users to the CSlib website.  Mention it in talks or
+link to it from your own WWW site. :ulb,l
+
+If you find an error or omission in the CSlib documentation, or have a
+suggestion for something to clarify or include, let us know. :l
+
+If you find a bug, please post details to the GitHub site or send
+an email to the developers. :l
+
+If you have a suggestion for a new feature or capability for the
+CSlib, summarize your idea or post code for it on the GitHub site, or
+send an email to the developers. :l
+
+If you publish a paper using the CSlib, send the citation to us and we
+can add it to the Publications page. :l
+
+Cash. Small denominations, unmarked bills preferred. Leave in paper
+sack on author's desk. VISA also accepted. Chocolate chip cookies
+encouraged. :ule,l

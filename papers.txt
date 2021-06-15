@@ -1,0 +1,31 @@
+"CSlib website"_cws :c
+:link(cws,index.html)
+
+:line
+
+CSlib Papers :h3
+
+If you use the CSlib library in one of your publications, please
+refernence the URL of the "CSlib website"_cws, namely
+http://cslib.sandia.gov.
+
+At some point we may write a paper about use of the CSlib,
+in which case we will post a citation here.
+
+:line
+
+The author of the CSlib is "Steve Plimpton"_sjp (sjplimp at
+sandia.gov).
+
+:link(sjp,http://www.sandia.gov/~sjplimp)
+
+You can send me an email regarding any of these issues:
+
+If you use the CSlib for something interesting, I'd like to hear about
+it. :ulb,l
+
+If you write a paper using the CSlib, I can post a citation to it on
+this page. :l
+
+If you enhance the CSlib or have ideas for doing so, we can discuss
+including the improvements in future releases. :l,ule
